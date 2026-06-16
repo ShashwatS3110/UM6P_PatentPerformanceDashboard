@@ -1,0 +1,17 @@
+# Ignore everything by default; only the dashboard + source data files are tracked.
+*
+
+# Allow the files this repo is scoped to
+!.gitignore
+!README.md
+!um6p_dashboard_v3.html
+!UM6P Dashboard Structure - June 16, 2026.xlsx
+!File 3 - Master Dashboard + Dataset - UM6P - Morocco-only.xlsx
+!File 4 - UM6P Patents Data - Raw - Morocco-only.xlsx
+!File 5 - Patent Renewal Data - MAScIR - Morocco-only.xlsx
+!File 6 - Patent Family Data - Escapenet - International.xlsx
+!File 7 - Citation Data - Orbit - International.xlsx
+!File 8 - PCT - WIPO - International.xls
+
+# Never track Excel lock files
+~$*
