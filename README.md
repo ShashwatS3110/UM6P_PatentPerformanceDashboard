@@ -1,6 +1,8 @@
 # UM6P Patent Performance Dashboard
 
-A single-file, self-contained HTML dashboard for tracking UM6P's patent portfolio across 8 areas: scale & momentum, funnel health, portfolio quality, legal strength & global reach, commercialization, ventures & partnership risk, and strategic alignment.
+**Macro question:** Is UM6P building a patent portfolio that is high-quality, well-protected, globally extended, and generating economic value?
+
+A single-file, self-contained HTML dashboard for tracking UM6P's patent portfolio across 8 tabs: an at-a-glance overview plus scale & momentum, funnel health, portfolio quality, global coverage, commercialization, ventures & partnership risk, and strategic alignment. Each tab leads with one headline indicator and 2–3 supporting ones; many cards open a patent-level drill-down on click.
 
 ## Files
 
@@ -16,4 +18,4 @@ A single-file, self-contained HTML dashboard for tracking UM6P's patent portfoli
 
 ## Status
 
-Indicators marked **"Not tracked yet"** in the dashboard require data not yet available (e.g. TTO disclosure logs, licensing/revenue records, PATSTAT citation cohorts). These are clearly flagged in the dashboard itself rather than hidden or estimated.
+Every indicator carries a badge: **"Tracked now"** = real figures from the source files above; **"Illustrative"** = placeholder values shown so the full dashboard can be previewed, pending data not yet available (e.g. TTO disclosure/licensing/revenue logs, PATSTAT citation cohorts, per-country family data). Illustrative numbers are flagged in the dashboard rather than hidden or passed off as verified.
