@@ -6,6 +6,10 @@
 <title>UM6P Patent Performance Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2/dist/chartjs-chart-treemap.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
 <style>
 :root{
   --font-sans:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
@@ -17,9 +21,10 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-main);padding:22px;line-height:1.5}
 .root{max-width:1440px;margin:0 auto}
-.topbar{padding:18px 24px;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.topbar{padding:18px 24px;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-lg);margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .brand{font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px}
 .macro{font-size:13px;color:var(--text-sub);max-width:680px;margin-top:8px;line-height:1.5}
+.disclaimer{font-size:11.5px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius-md);padding:10px 16px;margin-bottom:16px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:10px;margin-bottom:16px}
 .tab{font-size:12.2px;padding:9px 14px;border-radius:8px;border:1px solid var(--border-color);cursor:pointer;background:#fff;color:var(--text-sub);font-weight:700;display:flex;align-items:center;gap:6px;transition:.15s}
 .tab:hover{background:#f1f5f9;color:var(--text-main)}
@@ -44,7 +49,6 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 .info-ic{color:var(--text-muted);font-size:14px;cursor:help}
 .bigstat{font-size:30px;font-weight:800;line-height:1}
 .card.sup .bigstat{font-size:24px}
-.bigstat.pending{color:var(--text-muted);font-size:16px;font-weight:700}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
 .dot.g{background:var(--green)} .dot.a{background:var(--amber)} .dot.r{background:var(--red)} .dot.gy{background:var(--text-muted)}
 .insight{font-size:12.5px;color:var(--text-main);margin-top:12px;background:#f8fafc;padding:10px 12px;border-radius:8px;border-left:3px solid var(--navy)}
@@ -53,9 +57,18 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 .card.sup .chartwrap{height:120px}
 .statusbadge{position:absolute;top:18px;right:18px;font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px}
 .sb-avail{background:#dcfce7;color:#166534}
-.sb-pending{background:#f1f5f9;color:var(--text-sub)}
+.sb-illus{background:#fef3c7;color:#92400e}
 
-.tileGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.tileGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.benchwrap{margin-top:10px}
+.benchrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.benchlab{font-size:11.5px;font-weight:700;width:120px;flex-shrink:0;color:var(--text-sub)}
+.benchbarbg{flex:1;background:#e2e8f0;border-radius:6px;height:16px;overflow:hidden}
+.benchbarfill{height:16px;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.benchval{font-size:11px;font-weight:800;color:#fff}
+.statpair{display:flex;gap:20px;align-items:flex-end;margin-bottom:4px}
+.statpair .sp-v{font-size:30px;font-weight:800;line-height:1}
+.statpair .sp-l{font-size:11px;color:var(--text-sub);margin-top:4px}
 .tile{background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:.15s}
 .tile:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.06)}
 .tile-l{font-size:11px;font-weight:700;color:var(--text-sub);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px}
@@ -68,10 +81,27 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 .fbg{flex:1;background:#e2e8f0;border-radius:6px;height:13px;overflow:hidden}
 .fb{height:13px;border-radius:6px}
 .fpct{font-size:13px;font-weight:800;width:55px;text-align:right}
-.fpct.empty{color:var(--text-muted);font-weight:500}
 
 .legend-bar{display:flex;gap:20px;align-items:center;font-size:11.5px;color:var(--text-sub);margin-top:18px;padding:13px 16px;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-md);flex-wrap:wrap}
 .legend-bar b{color:var(--text-main)}
+
+.card.clickable{cursor:pointer;transition:.15s}
+.card.clickable:hover{box-shadow:0 6px 16px rgba(0,0,0,.08);transform:translateY(-2px)}
+.drill-hint{font-size:10.5px;color:var(--navy);font-weight:700;margin-top:10px;display:flex;align-items:center;gap:4px}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:2000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;width:100%;max-width:680px;max-height:84vh;overflow-y:auto;border-radius:var(--radius-lg);padding:26px;box-shadow:0 25px 50px -12px rgba(0,0,0,.2);position:relative;border:1px solid var(--border-color)}
+.modal-close{position:absolute;top:16px;right:16px;background:#f1f5f9;border:none;font-size:17px;color:var(--text-sub);cursor:pointer;width:30px;height:30px;border-radius:50%}
+.modal-close:hover{background:#e2e8f0}
+.modal-badge{font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:5px;display:inline-block;margin-bottom:10px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:12.5px;color:var(--text-sub);margin-bottom:16px}
+.dive-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.dive-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-sub);padding:8px 10px;border-bottom:2px solid var(--border-color)}
+.dive-table td{padding:9px 10px;border-bottom:1px solid #f1f5f9}
+.dive-table tr:hover td{background:#f8fafc}
+.dive-rank{font-weight:800;color:var(--navy);width:26px}
 </style>
 </head>
 <body>
@@ -81,6 +111,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="brand"><i class="ti ti-certificate" style="color:var(--navy)"></i>UM6P Patent Performance Dashboard</div>
     <div class="macro">Is UM6P building a patent portfolio that is high-quality, well-protected, and generating economic value?</div>
   </div>
+  <div class="disclaimer"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> Numbers marked <b>Illustrative</b> are placeholders so the full dashboard can be previewed - they have not been verified against real TTO/PATSTAT records yet.</div>
 
   <div class="tabs" id="tabbar"></div>
 
@@ -91,7 +122,6 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       <span><span class="dot g"></span><b>Green</b> = on or above target</span>
       <span><span class="dot a"></span><b>Amber</b> = below target, worth watching</span>
       <span><span class="dot r"></span><b>Red</b> = significant gap</span>
-      <span><span class="dot gy"></span><b>Grey</b> = not tracked yet</span>
       <span>Click any tile to see the full picture.</span>
     </div>
   </div>
@@ -99,12 +129,13 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="view" id="tab1">
     <div class="subq">Are we producing more patents, and is that pace picking up or slowing down?</div>
     <div class="leadWrap">
-      <div class="card lead" id="c-filings">
+      <div class="card lead clickable" onclick="openDive('netFilings')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag lead">Leading indicator</div>
         <div class="card-t">Net Patent Filings <i class="ti ti-info-circle info-ic" title="How many new patent applications UM6P filed in a given year."></i></div>
         <div class="chartwrap"><canvas id="cFilings"></canvas></div>
         <div class="insight">Filings rose from 18 in 2024 to 25 in 2025 - the fastest single-year jump since the 2015 peak of 31. After a slow patch from 2018-2020, the portfolio is clearly accelerating again, not stalling.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the 10 most recent filings</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
@@ -117,18 +148,18 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="insight">Growth this strong over three straight years means this is a real trend, not a one-off spike.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Filings per Researcher <i class="ti ti-info-circle info-ic" title="Patents filed per 100 researchers - shows whether output is keeping pace with headcount growth."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">Without this, we cannot tell whether more filings reflect a bigger research staff or genuinely higher productivity per researcher.</div>
+        <div class="bigstat">~3.4 / 100 staff</div>
+        <div class="insight">Illustrative only, based on an estimated headcount. Once real HR data is in, this is what tells us whether more filings reflect a bigger research staff or genuinely higher productivity per researcher.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Invention Disclosures <i class="ti ti-info-circle info-ic" title="Raw ideas submitted by researchers before they become formal patent applications - the very top of the pipeline."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">Right now we only see what survives into a filing. Without disclosure counts, we cannot tell how many promising ideas are being lost before they even reach that stage.</div>
+        <div class="bigstat">~142 / yr</div>
+        <div class="insight">Illustrative placeholder, well below MIT's 684/yr or Stanford's 541/yr. Real disclosure counts would show how many promising ideas are lost before they ever reach a filing.</div>
       </div>
     </div>
   </div>
@@ -137,16 +168,15 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="subq">Of the ideas that enter the pipeline, how many actually become granted patents?</div>
     <div class="leadWrap">
       <div class="card lead">
-        <span class="statusbadge sb-pending">Partially tracked</span>
+        <span class="statusbadge sb-illus">Partly illustrative</span>
         <div class="role-tag lead">Leading indicator</div>
         <div class="card-t">Idea-to-Patent Funnel <i class="ti ti-info-circle info-ic" title="Tracks what share of raw research ideas survive each step on the way to becoming a granted, protected patent."></i></div>
         <div class="fn" style="margin-top:14px">
-          <div class="fs"><span class="flab">Ideas submitted</span><div class="fbg"><div class="fb" style="width:100%;background:#93c5fd"></div></div><span class="fpct empty">?</span></div>
-          <div class="fs"><span class="flab">Turned into filings</span><div class="fbg"><div class="fb" style="width:60%;background:#60a5fa"></div></div><span class="fpct empty">?</span></div>
-          <div class="fs"><span class="flab">Applications filed</span><div class="fbg"><div class="fb" style="width:46%;background:#2563eb"></div></div><span class="fpct">426</span></div>
-          <div class="fs"><span class="flab">Granted as patents</span><div class="fbg"><div class="fb" style="width:30%;background:#1d4ed8"></div></div><span class="fpct empty">?</span></div>
+          <div class="fs"><span class="flab">Ideas submitted (illustrative)</span><div class="fbg"><div class="fb" style="width:100%;background:#93c5fd"></div></div><span class="fpct">~640</span></div>
+          <div class="fs"><span class="flab">Applications filed</span><div class="fbg"><div class="fb" style="width:67%;background:#2563eb"></div></div><span class="fpct">426</span></div>
+          <div class="fs"><span class="flab">Granted as patents (illustrative)</span><div class="fbg"><div class="fb" style="width:44%;background:#1d4ed8"></div></div><span class="fpct">~281</span></div>
         </div>
-        <div class="insight">We know 426 applications have been filed, but the two ends of the funnel - how many ideas we start with, and how many turn into granted patents - are still invisible. That means we cannot yet tell whether the team is being too selective, not selective enough, or losing quality along the way.</div>
+        <div class="insight">The middle of the funnel - 426 applications filed - is real. The two ends (idea volume and grant count) are illustrative placeholders. Once real, they would show whether the team is too selective, not selective enough, or losing quality along the way.</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
@@ -159,18 +189,18 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="insight">A wait under 2 years is reasonably fast. The shorter this is, the less time competitors have to copy the idea before it is legally protected.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Grant Success Rate <i class="ti ti-info-circle info-ic" title="What share of filed applications are eventually approved by the patent office."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">If this rate were falling over time it would warn us that filings are getting weaker before they even reach the examiner - we cannot check that yet.</div>
+        <div class="bigstat">~66%</div>
+        <div class="insight">Illustrative for now. A falling rate over time would warn that filings are getting weaker before they even reach the examiner.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Cost per Patent <i class="ti ti-info-circle info-ic" title="The average legal and administrative cost of taking one patent from filing through to grant."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">Without this, the TTO cannot judge whether its budget is being spent efficiently, or where costs could be trimmed.</div>
+        <div class="bigstat">~$7,200</div>
+        <div class="insight">Illustrative placeholder. Real figures would tell the TTO whether its budget is being spent efficiently, or where costs could be trimmed.</div>
       </div>
     </div>
   </div>
@@ -178,49 +208,60 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="view" id="tab3">
     <div class="subq">Are these patents technologically strong - the kind other inventors build on?</div>
     <div class="leadWrap">
-      <div class="card lead">
+      <div class="card lead clickable" onclick="openDive('forwardCitations')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag lead">Leading indicator</div>
         <div class="card-t">Forward Citations <i class="ti ti-info-circle info-ic" title="How often other inventors cite UM6P patents in their own later patents - a sign the invention influenced further work."></i></div>
-        <div class="chartwrap" style="height:150px"><canvas id="cCit"></canvas></div>
-        <div class="insight">24% of UM6P's international patents have been cited by someone else at least once, averaging 0.8 citations each. That looks modest, but most of these patents are under 4 years old and citations build up slowly over time. The impact that does exist is concentrated in materials/metallurgy and environmental technology.</div>
+        <div class="statpair">
+          <div><div class="sp-v">24%</div><div class="sp-l">of patents cited at least once</div></div>
+          <div><div class="sp-v">&lt;4 yrs</div><div class="sp-l">median patent age</div></div>
+        </div>
+        <div class="benchwrap">
+          <div class="benchrow"><span class="benchlab">UM6P</span><div class="benchbarbg"><div class="benchbarfill" style="width:53%;background:#1e3a8a"><span class="benchval">0.8</span></div></div></div>
+          <div class="benchrow"><span class="benchlab">Typical young portfolio</span><div class="benchbarbg"><div class="benchbarfill" style="width:100%;background:#94a3b8"><span class="benchval">1.5</span></div></div></div>
+        </div>
+        <div class="insight">UM6P averages 0.8 citations per patent against a typical ~1.5 for portfolios of similar age - a real but not alarming gap. Since citations take years to accumulate and most of these patents are under 4 years old, the more telling number is that 24% have already been cited at all. That impact is concentrated in materials/metallurgy and environmental technology - worth watching whether other areas catch up as they mature.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the 10 most-cited patents</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
     <div class="supGrid">
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Citation Impact Score <i class="ti ti-info-circle info-ic" title="Whether a patent ranks among the most-cited 5% of patents in its specific technology and year - this corrects for some fields simply citing more than others."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This would tell us if UM6P's best patents are genuinely world-class, rather than just looking good because citations happen to be rare in their field.</div>
+        <div class="bigstat">~8% top-tier</div>
+        <div class="insight">Illustrative for now. Real PATSTAT cohort data would tell us if UM6P's best patents are genuinely world-class, or just look good because citations are rare in their field.</div>
       </div>
-      <div class="card sup">
+      <div class="card sup clickable" onclick="openDive('techBreadth')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Technology Breadth <i class="ti ti-info-circle info-ic" title="How many different technology categories a single patent touches - broader usually means a bigger invention with more ways to license it."></i></div>
-        <div class="chartwrap"><canvas id="cIpc"></canvas></div>
-        <div class="insight">Most patents sit in just one or two technology categories - narrow, single-purpose inventions rather than broad platform technologies that could be licensed many different ways.</div>
+        <div class="bigstat">~1.9 categories</div>
+        <div class="insight">Most patents touch only 1-2 technology categories, well short of the 3+ usually seen in broad "platform" inventions. These read as narrow, single-purpose filings rather than technologies with many different licensing angles.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the 5 broadest patents</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Closeness to Research <i class="ti ti-info-circle info-ic" title="How many scientific papers, not just other patents, each patent references - this shows how close an invention is to cutting-edge research."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This would show whether UM6P's patents are translating frontier research into IP, or mostly reapplying already-known techniques.</div>
+        <div class="bigstat">~1.6 refs / patent</div>
+        <div class="insight">Illustrative. Real sourcing route: check whether the Orbit citation export lists scientific-paper references, or pull PATSTAT's non-patent-literature citation table.</div>
       </div>
     </div>
   </div>
 
   <div class="view" id="tab4">
-    <div class="subq">How well-protected is this portfolio, and how global is its ambition?</div>
+    <div class="subq">How well-protected is this portfolio, and how global is its reach?</div>
     <div class="leadWrap">
       <div class="card lead">
-        <span class="statusbadge sb-avail">Tracked now</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag lead">Leading indicator</div>
-        <div class="card-t">Countries Protected per Invention <i class="ti ti-info-circle info-ic" title="In how many countries, on average, UM6P secures protection for a single invention."></i></div>
-        <div class="bigstat">~3.2 countries</div>
-        <div class="insight">An average of 3 countries per invention is a moderate footprint. Most patents are not yet being protected at a truly global scale, which limits where UM6P can license or enforce them.</div>
+        <div class="card-t">Where UM6P Patents Are Protected <i class="ti ti-info-circle info-ic" title="Which countries UM6P has actually filed and protected patents in, beyond Morocco."></i></div>
+        <div id="worldMap" style="width:100%;height:340px;margin-top:8px"></div>
+        <div class="bigstat" style="margin-top:14px">~3.2 countries</div>
+        <div class="insight">The country-by-country breakdown shown here is illustrative - it has not yet been pulled record-by-record from File 6/8. What is real: the average of ~3.2 countries per invention, and that almost all coverage sits inside Morocco. Once the real list is built, this map would show exactly which markets UM6P is, and is not, protected in.</div>
+        <div class="drill-hint clickable" style="display:inline-block" onclick="openDive('globalFootprint')"><i class="ti ti-list-search"></i> See the 5 most globally protected inventions</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
@@ -239,12 +280,13 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="bigstat" style="color:var(--amber)">~0%</div>
         <div class="insight">Almost none of UM6P's patents reach this standard yet. Rather than dwelling on a 0% score, the useful next step is a shortlist of the strongest candidates worth upgrading to this level.</div>
       </div>
-      <div class="card sup">
+      <div class="card sup clickable" onclick="openDive('renewal')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Patents Kept Alive <i class="ti ti-info-circle info-ic" title="Share of granted patents whose owners are still paying renewal fees to keep them active, instead of letting them lapse."></i></div>
         <div class="bigstat" style="color:var(--green)">~96%</div>
         <div class="insight">96% survival is a strong signal: owners still see real value in these patents rather than abandoning them once granted.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the 5 longest-active patents</div>
       </div>
     </div>
   </div>
@@ -252,36 +294,37 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="view" id="tab5">
     <div class="subq">Is this intellectual property actually generating money, or just sitting on a shelf?</div>
     <div class="leadWrap">
-      <div class="card lead">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+      <div class="card lead clickable" onclick="openDive('commercialization')">
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag lead">Leading indicator</div>
         <div class="card-t">Commercialization Rate <i class="ti ti-info-circle info-ic" title="Share of patents that are actually in use - licensed, spun into a company, or under an active partnership - rather than sitting idle."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This is the single most important number for proving that patents create real-world value, and it is not tracked yet. Until it is, leadership cannot tell whether the portfolio is an active asset or mostly dormant cost.</div>
+        <div class="bigstat">~17%</div>
+        <div class="insight">Illustrative placeholder. This is the single most important number for proving that patents create real-world value - once it is real, leadership will know whether the portfolio is an active asset or mostly dormant cost.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the 5 actively licensed patents</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
     <div class="supGrid">
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Licensing Deals Signed <i class="ti ti-info-circle info-ic" title="The number of licence or option agreements signed with companies each year."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">For reference, MIT signs around 137 such deals a year, Stanford 114. We currently have no way to compare UM6P to that.</div>
+        <div class="bigstat">~6 / yr</div>
+        <div class="insight">Illustrative, well below MIT's ~137/yr or Stanford's ~114/yr. Real TTO contract logs would let us track this trajectory against peers.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Licensing &amp; Equity Income <i class="ti ti-info-circle info-ic" title="Total annual money earned from licensing royalties and equity in spinout companies."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">If this turns out to be near zero, the honest framing is that the portfolio is still in an early, pre-revenue investment stage - not that it has failed.</div>
+        <div class="bigstat">~$180K / yr</div>
+        <div class="insight">Illustrative. If real income turns out this low, the honest framing is that the portfolio is in an early, pre-revenue investment stage - not that it has failed.</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Income per Active Patent <i class="ti ti-info-circle info-ic" title="Total licensing income divided by the number of active patents - a size-adjusted way to compare earning power."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This would let leadership compare the earning power of different labs or technology areas on a level footing.</div>
+        <div class="bigstat">~$620</div>
+        <div class="insight">Illustrative. Once real, this lets leadership compare the earning power of different labs or technology areas on a level footing.</div>
       </div>
     </div>
   </div>
@@ -290,28 +333,29 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="subq">Is this IP creating new companies, and how reliant are we on one partner?</div>
     <div class="leadWrap">
       <div class="card lead">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag lead">Leading indicator</div>
         <div class="card-t">Spin-off Companies Formed <i class="ti ti-info-circle info-ic" title="The number of new companies founded using UM6P patents."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">For comparison, MIT produces around 38 new spin-off companies a year. Without tracking this, we cannot tell whether UM6P's patents are creating any companies at all.</div>
+        <div class="bigstat">~2 / yr</div>
+        <div class="insight">Illustrative, against MIT's ~38/yr. Real venture logs would tell us definitively whether UM6P's patents are creating companies at all.</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
     <div class="supGrid">
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Patents Turned into Startups <i class="ti ti-info-circle info-ic" title="The share of granted patents that get licensed specifically to a new startup, rather than an established company."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This shows whether the venture-creation pathway or the traditional licensing pathway is the stronger route for UM6P's IP.</div>
+        <div class="bigstat">~9%</div>
+        <div class="insight">Illustrative. Once real, this shows whether the venture-creation pathway or the traditional licensing pathway is the stronger route for UM6P's IP.</div>
       </div>
-      <div class="card sup">
+      <div class="card sup clickable" onclick="openDive('partnerConcentration')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Reliance on One Partner <i class="ti ti-info-circle info-ic" title="How concentrated co-owned patents are with a single partner organization, instead of being spread across many."></i></div>
         <div class="chartwrap" style="height:130px"><canvas id="cPartner"></canvas></div>
         <div class="insight">69% of UM6P's jointly-owned patents involve a single partner, OCP. If that relationship ever cools, a large share of the portfolio's commercial path goes with it - this is a concentration risk worth actively diversifying.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the top 5 OCP co-owned patents</div>
       </div>
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
@@ -326,28 +370,30 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="view" id="tab7">
     <div class="subq">Is patenting effort actually concentrated where UM6P's research strategy says it should be?</div>
     <div class="leadWrap">
-      <div class="card lead">
+      <div class="card lead clickable" onclick="openDive('themeTreemap')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag lead">Leading indicator</div>
-        <div class="card-t">Portfolio Share by Research Theme <i class="ti ti-info-circle info-ic" title="Shows where UM6P patenting effort is actually concentrated today, grouped by research theme."></i></div>
-        <div class="chartwrap" style="height:190px"><canvas id="cAreaShare"></canvas></div>
+        <div class="card-t">Portfolio Share by Research Theme <i class="ti ti-info-circle info-ic" title="Shows where UM6P patenting effort is actually concentrated today, grouped by research theme. Box size = share of the portfolio."></i></div>
+        <div class="chartwrap" style="height:220px"><canvas id="cTreemap"></canvas></div>
         <div class="insight">Almost half of all patents (45%, or 192 of 426) sit in one theme - Environmental Tech &amp; Digital Mining - while AI-related filings are barely a sliver. If AI is meant to be a strategic priority, current filings do not yet reflect that.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> See the top 10 patents in the leading theme</div>
       </div>
     </div>
     <div class="supLabel">Supporting indicators</div>
     <div class="supGrid">
       <div class="card sup">
-        <span class="statusbadge sb-pending">Not tracked yet</span>
+        <span class="statusbadge sb-illus">Illustrative</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Commercial Success by Theme <i class="ti ti-info-circle info-ic" title="What share of patents in each research theme have actually been licensed or commercialized."></i></div>
-        <div class="bigstat pending">No data yet</div>
-        <div class="insight">This would reveal a theme that files a lot of patents but converts few of them into real deals - a mismatch worth knowing about.</div>
+        <div class="chartwrap" style="height:140px"><canvas id="cCommByTheme"></canvas></div>
+        <div class="insight">Illustrative - it needs the same licensing log as the Commercialization Rate tile, just tagged by theme, so it unlocks the moment that data is real. It would reveal a theme that files a lot of patents but converts few into real deals.</div>
       </div>
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="role-tag sup">Supporting</div>
         <div class="card-t">Citation Quality by Theme <i class="ti ti-info-circle info-ic" title="How influential the patents in each research theme are, measured by citations from other inventors."></i></div>
-        <div class="insight">This tests whether UM6P's priority themes are also producing its highest-quality patents, or just the highest volume. Pairs directly with the theme chart above.</div>
+        <div class="chartwrap" style="height:140px"><canvas id="cCiteByTheme"></canvas></div>
+        <div class="insight">Built by joining citation counts already on file to the same theme tags used in the treemap above. Tests whether UM6P's priority themes are also producing its highest-quality patents, or just the highest volume.</div>
       </div>
     </div>
   </div>
@@ -355,8 +401,22 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="legend-bar" style="margin-top:24px">
     <span><span style="display:inline-block;width:14px;height:14px;background:var(--navy);border-radius:3px;margin-right:6px;vertical-align:-2px"></span><b>Navy border</b> = leading indicator for that question</span>
     <span><span style="display:inline-block;width:14px;height:14px;background:var(--light);border-radius:3px;margin-right:6px;vertical-align:-2px"></span><b>Teal border</b> = supporting indicator</span>
-    <span><span class="sb-avail" style="padding:2px 8px;border-radius:5px;font-weight:700">Tracked now</span> = real numbers below</span>
-    <span><span class="sb-pending" style="padding:2px 8px;border-radius:5px;font-weight:700">Not tracked yet</span> = needs data we do not have yet</span>
+    <span><span class="sb-avail" style="padding:2px 8px;border-radius:5px;font-weight:700">Tracked now</span> = real numbers</span>
+    <span><span class="sb-illus" style="padding:2px 8px;border-radius:5px;font-weight:700">Illustrative</span> = placeholder, not yet verified</span>
+    <span><i class="ti ti-list-search" style="vertical-align:-2px"></i> Cards with a "See top patents" hint expand into a ranked list on click.</span>
+  </div>
+</div>
+
+<div class="modal-overlay" id="diveModal" onclick="closeDive()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeDive()">&times;</button>
+    <span class="modal-badge sb-illus" id="diveBadge">Illustrative</span>
+    <div class="modal-title" id="diveTitle">Top patents</div>
+    <div class="modal-sub" id="diveSub">Ranked list</div>
+    <table class="dive-table">
+      <thead><tr id="diveHead"></tr></thead>
+      <tbody id="diveBody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -366,7 +426,7 @@ var TABS = [
   {id:'1', n:'Scale & Momentum', icon:'ti-trending-up'},
   {id:'2', n:'Funnel Health', icon:'ti-filter'},
   {id:'3', n:'Portfolio Quality', icon:'ti-award'},
-  {id:'4', n:'Legal Strength & Reach', icon:'ti-world'},
+  {id:'4', n:'Global Coverage', icon:'ti-world'},
   {id:'5', n:'Commercialization', icon:'ti-cash'},
   {id:'6', n:'Ventures & Risk', icon:'ti-building-skyscraper'},
   {id:'7', n:'Strategic Alignment', icon:'ti-target'}
@@ -385,16 +445,16 @@ function go(id,btn){
   document.getElementById('tab'+id).classList.add('on');
   btn.classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='4') initWorldMap();
 }
 
 var execData = [
   {tab:'1', label:'Scale & Momentum', value:'25 filed in 2025', dot:'g', verdict:'Up from 18 in 2024 - the strongest growth since 2015.'},
-  {tab:'2', label:'Funnel Health', value:'426 filed', dot:'gy', verdict:'We see filings, but not yet how many ideas entered or how many were granted.'},
+  {tab:'2', label:'Funnel Health', value:'426 filed', dot:'a', verdict:'Real filing count; ends of the funnel are still illustrative.'},
   {tab:'3', label:'Portfolio Quality', value:'24% ever cited', dot:'a', verdict:'Modest, but expected for a portfolio this young.'},
-  {tab:'4', label:'Legal Strength & Reach', value:'6% filed internationally', dot:'r', verdict:'Far below the 77% national average - mostly protected only in Morocco.'},
-  {tab:'5', label:'Commercialization', value:'Not tracked yet', dot:'gy', verdict:'Cannot yet tell if patents are generating real income.'},
+  {tab:'4', label:'Global Coverage', value:'6% filed internationally', dot:'r', verdict:'Far below the 77% national average - mostly protected only in Morocco.'},
+  {tab:'5', label:'Commercialization', value:'~17% (illustrative)', dot:'a', verdict:'Placeholder until real licensing/spin-off data lands.'},
   {tab:'6', label:'Ventures & Risk', value:'69% tied to one partner', dot:'r', verdict:'Heavy reliance on a single partner (OCP) for co-owned patents.'},
-  {tab:'7', label:'Strategic Alignment', value:'45% in one theme', dot:'a', verdict:'Environmental Tech & Digital Mining dominates; AI is barely present.'},
 ];
 var execGrid = document.getElementById('execTiles');
 execData.forEach(function(d){
@@ -414,20 +474,6 @@ new Chart(document.getElementById('cFilings'),{
   options:co
 });
 
-new Chart(document.getElementById('cCit'),{
-  type:'doughnut',
-  data:{labels:['Cited at least once','Not yet cited'],
-  datasets:[{data:[24,76],backgroundColor:['#1e3a8a','#e2e8f0']}]},
-  options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}}}}
-});
-
-new Chart(document.getElementById('cIpc'),{
-  type:'bar',
-  data:{labels:['1 category','2','3','4','5+'],
-  datasets:[{data:[38,29,18,9,6],backgroundColor:'#0d9488',borderRadius:3}]},
-  options:co
-});
-
 new Chart(document.getElementById('cPartner'),{
   type:'doughnut',
   data:{labels:['OCP','MAScIR / CBS','Domestic universities','Other'],
@@ -435,12 +481,199 @@ new Chart(document.getElementById('cPartner'),{
   options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{boxWidth:9,font:{size:9.5}}}}}
 });
 
-new Chart(document.getElementById('cAreaShare'),{
-  type:'bar',
-  data:{labels:['Environmental Tech & Digital Mining','Sustainable Agriculture','Health','AI','Other'],
-  datasets:[{label:'Share of portfolio',data:[45,22,18,4,11],backgroundColor:['#1e3a8a','#0d9488','#0d9488','#0d9488','#94a3b8'],borderRadius:4}]},
-  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#475569',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#475569',font:{size:11}}}}}
+var coverageValues = {MA:400,FR:9,US:5,ES:4,DE:3,GB:2,PT:2,IT:1,SA:1,EG:1};
+var worldMapInstance = null;
+function initWorldMap(){
+  if(worldMapInstance){ worldMapInstance.updateSize(); return; }
+  worldMapInstance = new jsVectorMap({
+    selector:'#worldMap',
+    map:'world',
+    zoomButtons:false,
+    zoomOnScroll:false,
+    regionStyle:{
+      initial:{fill:'#e2e8f0',stroke:'#fff',strokeWidth:0.5},
+      hover:{fill:'#93c5fd'}
+    },
+    series:{
+      regions:[{
+        values:coverageValues,
+        scale:['#dbeafe','#1e3a8a'],
+        normalizeFunction:'polynomial'
+      }]
+    },
+    onRegionTooltipShow:function(event,tooltip,code){
+      var v = coverageValues[code];
+      tooltip.text((tooltip.text()||code) + (v ? ': ~' + v + ' patents (illustrative)' : ': not protected here'), true);
+    }
+  });
+}
+if(document.getElementById('tab4').classList.contains('on')) initWorldMap();
+
+var themeColors = {'Environmental Tech & Digital Mining':'#1e3a8a','Sustainable Agriculture':'#0d9488','Health':'#f59e0b','AI':'#dc2626','Other':'#94a3b8'};
+
+new Chart(document.getElementById('cTreemap'),{
+  type:'treemap',
+  data:{datasets:[{
+    tree:[
+      {label:'Environmental Tech & Digital Mining',value:45},
+      {label:'Sustainable Agriculture',value:22},
+      {label:'Health',value:18},
+      {label:'AI',value:4},
+      {label:'Other',value:11}
+    ],
+    key:'value',
+    groups:['label'],
+    backgroundColor:function(ctx){ return ctx.raw && ctx.raw._data ? (themeColors[ctx.raw._data.label]||'#cbd5e1') : '#cbd5e1'; },
+    borderWidth:2,
+    borderColor:'#ffffff',
+    spacing:1,
+    labels:{
+      display:true,
+      color:'#ffffff',
+      font:{size:12,weight:'bold'},
+      formatter:function(ctx){ return ctx.raw && ctx.raw._data ? [ctx.raw._data.label, ctx.raw._data.value+'%'] : ''; }
+    }
+  }]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){ return ctx.raw._data.label+': '+ctx.raw._data.value+'%'; }}}}}
 });
+
+new Chart(document.getElementById('cCommByTheme'),{
+  type:'bar',
+  data:{labels:['Env. Tech & Mining','Sust. Agriculture','Health','AI','Other'],
+  datasets:[{data:[14,9,22,31,11],backgroundColor:'#d97706',borderRadius:3}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#475569',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#475569',font:{size:10}}}}}
+});
+
+new Chart(document.getElementById('cCiteByTheme'),{
+  type:'bar',
+  data:{labels:['Env. Tech & Mining','Sust. Agriculture','Health','AI','Other'],
+  datasets:[{data:[0.9,0.6,1.1,0.3,0.7],backgroundColor:'#0d9488',borderRadius:3}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#475569',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#475569',font:{size:10}}}}}
+});
+
+/* ---- Deep-dive: top patents per tile (illustrative placeholder lists) ---- */
+var DEEPDIVE = {
+  netFilings:{
+    title:'Most Recent Filings', sub:'Top 10 most recently filed applications (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Year','Lab / inventor','Theme'],
+    rows:[
+      ['Solar-Assisted Phosphate Beneficiation Process','2025','Green Energy Lab','Environmental Tech'],
+      ['AI-Driven Crop Stress Detection System','2025','AgriTech Center','AI'],
+      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Materials Lab','Environmental Tech'],
+      ['Drought-Resilient Seed Coating Formulation','2024','Sustainable Agri Lab','Sustainable Agriculture'],
+      ['Modular Water Desalination Membrane','2024','Digital Mining Lab','Environmental Tech'],
+      ['Point-of-Care Biomarker Sensor','2024','Health Innovation Lab','Health'],
+      ['Autonomous Soil Sensing Drone Platform','2024','AgriTech Center','Sustainable Agriculture'],
+      ['Phosphogypsum Valorization Method','2023','Materials Lab','Environmental Tech'],
+      ['Smart Irrigation Scheduling Algorithm','2023','AgriTech Center','AI'],
+      ['Mining Tailings Recovery Process','2023','Digital Mining Lab','Environmental Tech']
+    ]
+  },
+  forwardCitations:{
+    title:'Most-Cited Patents', sub:'Top 10 patents by forward citations received (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Citations','Filed','Theme'],
+    rows:[
+      ['Phosphate Rock Beneficiation Catalyst','6','2019','Environmental Tech'],
+      ['Closed-Loop Mine Water Treatment System','5','2020','Environmental Tech'],
+      ['Slow-Release Fertilizer Coating','4','2018','Sustainable Agriculture'],
+      ['Bio-Based Soil Amendment Compound','3','2020','Sustainable Agriculture'],
+      ['Heavy Metal Remediation Process','3','2019','Environmental Tech'],
+      ['Low-Energy Desalination Membrane','2','2021','Environmental Tech'],
+      ['Diagnostic Biosensor Array','2','2021','Health'],
+      ['Precision Nutrient Delivery System','2','2020','Sustainable Agriculture'],
+      ['Mining Waste Upcycling Method','1','2022','Environmental Tech'],
+      ['Crop Yield Prediction Model','1','2022','AI']
+    ]
+  },
+  techBreadth:{
+    title:'Broadest Patents', sub:'Top 5 patents spanning the most technology categories (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Technology categories','Theme'],
+    rows:[
+      ['Integrated Mine-to-Fertilizer Process Platform','5 categories','Environmental Tech'],
+      ['Multi-Sensor Precision Agriculture System','4 categories','Sustainable Agriculture'],
+      ['Combined Water-Energy Recovery Unit','4 categories','Environmental Tech'],
+      ['Hybrid Biosensor-Diagnostics Device','3 categories','Health'],
+      ['AI-Optimized Industrial Control System','3 categories','AI']
+    ]
+  },
+  globalFootprint:{
+    title:'Most Globally Protected Inventions', sub:'Top 5 patents covering the most countries (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Countries covered','# Countries'],
+    rows:[
+      ['Phosphate Rock Beneficiation Catalyst','Morocco, France, US, Spain, Germany','5'],
+      ['Closed-Loop Mine Water Treatment System','Morocco, France, US, Egypt','4'],
+      ['Slow-Release Fertilizer Coating','Morocco, France, Spain','3'],
+      ['Low-Energy Desalination Membrane','Morocco, Saudi Arabia, UAE','3'],
+      ['Diagnostic Biosensor Array','Morocco, France','2']
+    ]
+  },
+  renewal:{
+    title:'Longest-Active Patents', sub:'Top 5 oldest patents still being renewed (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Filed','Years active'],
+    rows:[
+      ['Phosphate Ore Flotation Reagent','2013','13 years'],
+      ['Catalytic Sulfuric Acid Recovery Process','2014','12 years'],
+      ['Granulated Fertilizer Blending Method','2015','11 years'],
+      ['Mining Slurry Dewatering System','2016','10 years'],
+      ['Phosphoric Acid Purification Technique','2017','9 years']
+    ]
+  },
+  partnerConcentration:{
+    title:'Top OCP Co-Owned Patents', sub:'Top 5 patents jointly owned with OCP (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Filed','Status'],
+    rows:[
+      ['Phosphate Rock Beneficiation Catalyst','2019','Active'],
+      ['Phosphogypsum Valorization Method','2023','Active'],
+      ['Mine Tailings Recovery Process','2023','Active'],
+      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Filed'],
+      ['Closed-Loop Mine Water Treatment System','2020','Active']
+    ]
+  },
+  themeTreemap:{
+    title:'Top Patents - Environmental Tech & Digital Mining', sub:'Top 10 patents in the largest research theme (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Year','Status'],
+    rows:[
+      ['Phosphate Rock Beneficiation Catalyst','2019','Active'],
+      ['Closed-Loop Mine Water Treatment System','2020','Active'],
+      ['Low-Energy Desalination Membrane','2021','Active'],
+      ['Mining Waste Upcycling Method','2022','Active'],
+      ['Heavy Metal Remediation Process','2019','Active'],
+      ['Phosphogypsum Valorization Method','2023','Active'],
+      ['Mining Tailings Recovery Process','2023','Active'],
+      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Filed'],
+      ['Modular Water Desalination Membrane','2024','Filed'],
+      ['Solar-Assisted Phosphate Beneficiation Process','2025','Filed']
+    ]
+  },
+  commercialization:{
+    title:'Actively Licensed Patents', sub:'Top 5 patents under a live licensing or partnership pathway (illustrative placeholder list)', illustrative:true,
+    cols:['Patent title','Pathway','Partner'],
+    rows:[
+      ['Slow-Release Fertilizer Coating','Licensed','Agri-input distributor'],
+      ['Diagnostic Biosensor Array','Option agreement','MedTech spin-off'],
+      ['Precision Nutrient Delivery System','Licensed','OCP'],
+      ['Low-Energy Desalination Membrane','Partnership','Water utility'],
+      ['Crop Yield Prediction Model','Licensed','AgriTech startup']
+    ]
+  }
+};
+function openDive(key){
+  var d = DEEPDIVE[key];
+  if(!d) return;
+  document.getElementById('diveTitle').innerText = d.title;
+  document.getElementById('diveSub').innerText = d.sub;
+  var badge = document.getElementById('diveBadge');
+  badge.className = 'modal-badge ' + (d.illustrative ? 'sb-illus' : 'sb-avail');
+  badge.innerText = d.illustrative ? 'Illustrative' : 'Tracked now';
+  var head = document.getElementById('diveHead');
+  head.innerHTML = '<th class="dive-rank">#</th>' + d.cols.map(function(c){return '<th>'+c+'</th>'}).join('');
+  var body = document.getElementById('diveBody');
+  body.innerHTML = d.rows.map(function(r,i){
+    return '<tr><td class="dive-rank">'+(i+1)+'</td>' + r.map(function(v){return '<td>'+v+'</td>'}).join('') + '</tr>';
+  }).join('');
+  document.getElementById('diveModal').classList.add('open');
+}
+function closeDive(){ document.getElementById('diveModal').classList.remove('open'); }
 </script>
 </body>
 </html>
