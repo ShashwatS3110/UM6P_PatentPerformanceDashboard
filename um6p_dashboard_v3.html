@@ -80,18 +80,18 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 .supLabel{font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;margin:0 0 14px;padding-bottom:10px;border-bottom:2px solid var(--orange)}
 .supGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:28px}
 
-.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;position:relative}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;position:relative;display:flex;flex-direction:column}
 .card.lead{border-top:3px solid var(--orange)}
 .card.sup{border-top:2px solid var(--orange-pale)}
-.card-t{font-size:1rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px;color:var(--text-main);text-transform:uppercase;letter-spacing:.02em}
+.card-t{font-size:1rem;font-weight:700;margin:0 0 10px;display:flex;align-items:flex-start;gap:7px;color:var(--text-main);text-transform:uppercase;letter-spacing:.02em;line-height:1.35}
 .card.sup .card-t{font-size:.9rem}
-.info-ic{color:var(--text-muted);font-size:13px;cursor:help}
+.info-ic{color:var(--text-muted);font-size:13px;cursor:help;flex-shrink:0;margin-top:2px}
 .bigstat{font-size:1.7rem;font-weight:800;line-height:1.05;color:var(--text-main);letter-spacing:-.01em}
 .card.sup .bigstat{font-size:1.4rem}
 .insight{font-size:.84rem;color:var(--text-sub);margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color);line-height:1.6;font-weight:400}
 .chartwrap{position:relative;width:100%;height:170px;margin-top:12px}
 .card.sup .chartwrap{height:120px}
-.statusbadge{position:absolute;top:22px;right:22px;font-size:.62rem;font-weight:700;padding:4px 9px;border-radius:0;letter-spacing:.05em;text-transform:uppercase}
+.statusbadge{align-self:flex-end;margin-top:12px;font-size:.62rem;font-weight:700;padding:4px 9px;border-radius:0;letter-spacing:.05em;text-transform:uppercase;line-height:1.3}
 .sb-avail{background:#E8F5EE;color:var(--green)}
 .sb-illus{background:var(--orange-light);color:var(--orange-dark)}
 
@@ -945,6 +945,18 @@ function closeDive(){ document.getElementById('diveModal').classList.remove('ope
 
 renderBench();
 placeBenchCtrl('0');
+
+document.querySelectorAll('.card').forEach(function(card){
+  var head = card.querySelector(':scope > .card-head');
+  var badge = head ? head.querySelector('.statusbadge') : card.querySelector(':scope > .statusbadge');
+  if(!badge) badge = card.querySelector('.statusbadge');
+  if(head){
+    var title = head.querySelector('.card-t');
+    if(title) card.insertBefore(title, head);
+    head.remove();
+  }
+  if(badge) card.appendChild(badge);
+});
 </script>
 </body>
 </html>
