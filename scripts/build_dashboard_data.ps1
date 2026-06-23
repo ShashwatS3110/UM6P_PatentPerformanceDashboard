@@ -13,6 +13,9 @@ function Short-Title([string]$t, [int]$max = 72) {
     return $t.Substring(0, $max - 1) + [char]0x2026
 }
 
+# Format a filing year: blank/0 shown as an em dash (some File 3 rows have no recorded year)
+function Yr([int]$y) { if ($y -gt 0) { "$y" } else { [string][char]0x2014 } }
+
 function Theme-Short([string]$t) {
     if ($t -match 'Environmental') { return 'Environmental Tech' }
     if ($t -match 'Green Agriculture') { return 'Sustainable Agriculture' }
@@ -308,23 +311,70 @@ foreach ($k in $themeKeys) {
 }
 $avgAbsGap = if ($alignGap.Count) { ($alignGap.Values | ForEach-Object { [math]::Abs([double]$_) } | Measure-Object -Average).Average } else { 0 }
 
-function Patent-Market($p) {
+# Normalize a single geo token to a canonical country/route name
+function Norm-Country([string]$c) {
+    $c = $c.Trim()
+    if ($c -match '^(Maroc|MAROC|Morocco|Maroc\.)$') { return 'Morocco' }
+    if ($c -match '^(United States|USA|US|Etats-Unis)$') { return 'United States' }
+    if ($c -match '^(Great Britain|United Kingdom|UK|GB)$') { return 'Great Britain' }
+    if ($c -match '^(International|PCT)$') { return 'WIPO/PCT' }
+    return $c
+}
+# Split a patent's geo field into a distinct set of country tokens (empty if blank)
+function Geo-Set($p) {
     $geo = if ($p.geo) { $p.geo.Trim() } else { '' }
-    if ($geo) {
-        if ($geo -match '^Maroc$') { return 'Morocco' }
-        if ($geo -match 'PCT|WIPO') { return 'WIPO/PCT' }
-        if ($geo -match ';') { return 'Multi-country' }
-        return $geo
+    $set = [System.Collections.Generic.List[string]]::new()
+    if (-not $geo) { return $set }
+    foreach ($tok in ($geo -split ';')) {
+        $n = Norm-Country $tok
+        if ($n -and -not $set.Contains($n)) { [void]$set.Add($n) }
     }
-    if ($p.statut -match 'PCT|WIPO') { return 'WIPO/PCT' }
-    return 'Morocco'
+    return $set
 }
-$countryPatent = @{}
+# Primary single-bucket classification so every application counts exactly once (sum = total)
+# NB: @(...) prevents PowerShell from unrolling a single-element list into a scalar string
+function Patent-Bucket($p) {
+    $set = @(Geo-Set $p)
+    if ($set.Count -eq 0) { return 'Filing country not recorded' }
+    if ($set.Count -eq 1) {
+        if ($set[0] -eq 'Morocco') { return 'Morocco (national)' }
+        return $set[0]
+    }
+    return 'Multi-country (international)'
+}
+$countryPatent = @{}              # primary-bucket counts (sum = totalPatents)
+$countryMembers = @{}             # country -> list of patents that include it (for deep-dive)
 foreach ($p in $patents) {
-    $m = Patent-Market $p
-    if (-not $countryPatent[$m]) { $countryPatent[$m] = 0 }
-    $countryPatent[$m]++
+    $b = Patent-Bucket $p
+    if (-not $countryPatent[$b]) { $countryPatent[$b] = 0 }
+    $countryPatent[$b]++
+    $set = Geo-Set $p
+    if ($set.Count -eq 0) {
+        if (-not $countryMembers['Filing country not recorded']) { $countryMembers['Filing country not recorded'] = [System.Collections.Generic.List[object]]::new() }
+        [void]$countryMembers['Filing country not recorded'].Add($p)
+    } else {
+        foreach ($c in $set) {
+            if (-not $countryMembers[$c]) { $countryMembers[$c] = [System.Collections.Generic.List[object]]::new() }
+            [void]$countryMembers[$c].Add($p)
+        }
+    }
 }
+# Build a legible treemap that sums to totalPatents: keep buckets >= 3, group the rest as "Other countries"
+$bucketPairs = @($countryPatent.GetEnumerator() | ForEach-Object { [pscustomobject]@{ label=$_.Key; count=$_.Value } } | Sort-Object count -Descending)
+$keepBuckets = @(); $otherSum = 0
+foreach ($b in $bucketPairs) {
+    if ($b.count -ge 3 -or $b.label -match 'Not recorded|national|Multi-country') { $keepBuckets += $b }
+    else { $otherSum += $b.count }
+}
+$countryTreemap = @()
+foreach ($b in $keepBuckets) {
+    $kind = if ($b.label -match 'Not recorded') { 'gap' }
+            elseif ($b.label -match 'Multi-country') { 'multi' }
+            elseif ($b.label -match 'Morocco \(national\)') { 'dom' }
+            else { 'intl' }
+    $countryTreemap += @{ label=$b.label; value=$b.count; kind=$kind }
+}
+if ($otherSum -gt 0) { $countryTreemap += @{ label="Other countries"; value=$otherSum; kind='intl' } }
 
 $partnerYears = 2019..2025
 $partnerOcp=@{}; $partnerOther=@{}; $partnerAcad=@{}; $partnerSolo=@{}
@@ -350,27 +400,56 @@ if ($coTotal) {
     $hhi = [math]::Round($hhi / 10000, 2)
 }
 
-# Match citations to themes by title prefix
-$citeThemeAvg = @{}
-foreach ($k in $themeKeys) { $citeThemeAvg[$k] = [System.Collections.Generic.List[double]]::new() }
+# Match File 7 (25 international patents) to File 3 themes by title prefix; SUM citations per theme.
+# Honest: unmatched citations are NOT reassigned to any theme — they are counted separately.
+$citeThemeSum = @{}; $citeThemeMatched = @{}
+foreach ($k in $themeKeys) { $citeThemeSum[$k] = 0; $citeThemeMatched[$k] = 0 }
+$citeMatchedTotal = 0; $citeUnmatched = 0
 foreach ($c in $citations) {
-    $matched = $false
+    $hit = $null
+    $ct = $c.title.ToUpper()
     foreach ($p in $patents) {
-        if ($p.title.Length -ge 12 -and $c.title.Length -ge 12 -and $p.title.Substring(0,12).ToUpper() -eq $c.title.Substring(0,12).ToUpper()) {
-            [void]$citeThemeAvg[$p.theme].Add($c.citations); $matched = $true; break
+        if ($p.title.Length -lt 12 -or $c.title.Length -lt 12) { continue }
+        $pt = $p.title.ToUpper()
+        if ($pt.Substring(0,[math]::Min(18,$pt.Length)) -eq $ct.Substring(0,[math]::Min(18,$ct.Length)) -or
+            ($ct.Length -ge 20 -and $pt.Contains($ct.Substring(0,20))) -or
+            ($pt.Length -ge 20 -and $ct.Contains($pt.Substring(0,20)))) {
+            $hit = $p; break
         }
     }
-    if (-not $matched) { [void]$citeThemeAvg["Environmental Tech & Digital Mining"].Add($c.citations) }
+    if ($hit) {
+        $citeThemeSum[$hit.theme] += $c.citations
+        $citeThemeMatched[$hit.theme]++
+        $citeMatchedTotal++
+    } else { $citeUnmatched++ }
 }
-$citeVals = @($themeKeys | ForEach-Object { if ($citeThemeAvg[$_].Count) { [math]::Round(($citeThemeAvg[$_] | Measure-Object -Average).Average, 1) } else { 0 } })
+# Chart shows TOTAL forward citations per theme among the matched Orbit sample
+$citeVals = @($themeKeys | ForEach-Object { $citeThemeSum[$_] })
+$citeMatchedVals = @($themeKeys | ForEach-Object { $citeThemeMatched[$_] })
 
 function Dive([string]$key,[string]$title,[string]$sub,[array]$cols,[array]$rows,[bool]$illus) {
     return @{ key=$key; title=$title; sub=$sub; cols=$cols; rows=$rows; illustrative=$illus }
 }
 
+# Find the File 3 theme for an international title (File 6/7) via title prefix/containment; '' if no match
+function Theme-ForTitle([string]$title) {
+    if ([string]::IsNullOrWhiteSpace($title)) { return '' }
+    $t = $title.ToUpper()
+    foreach ($p in $patents) {
+        if ($p.title.Length -lt 12) { continue }
+        $pt = $p.title.ToUpper()
+        if ($pt.Substring(0,[math]::Min(18,$pt.Length)) -eq $t.Substring(0,[math]::Min(18,$t.Length)) -or
+            ($t.Length -ge 20 -and $pt.Contains($t.Substring(0,20))) -or
+            ($pt.Length -ge 20 -and $t.Contains($pt.Substring(0,20)))) {
+            return (Theme-Short $p.theme)
+        }
+    }
+    return ''
+}
+
 $dives = @{}
 $dives['netFilings'] = Dive 'netFilings' 'Most Recent Patent Filings' '10 most recently filed applications (File 3)' @('Patent title','Year','Lab','Theme') @(
-    @($patents | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
+    @($patents | Where-Object { $_.title -and $_.year -gt 0 } | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
         ,@((Short-Title $_.title), "$($_.year)", (Esc-Json $_.lab), (Theme-Short $_.theme))
     })
 ) $false
@@ -387,9 +466,10 @@ $dives['forwardCitations'] = Dive 'forwardCitations' 'Most-Cited Patents' 'Orbit
     })
 ) $false
 
-$dives['techBreadth'] = Dive 'techBreadth' 'Broadest Patents by Technology Scope' 'Distinct IPC classes per family (File 6)' @('Patent title','IPC classes','Jurisdictions') @(
+$dives['techBreadth'] = Dive 'techBreadth' 'Broadest Patents by Technology Scope' 'Distinct IPC classes per family (File 6)' @('Patent title','Theme','IPC classes','Jurisdictions') @(
     @($families | Sort-Object ipcCount -Descending | Select-Object -First 5 | ForEach-Object {
-        ,@((Short-Title $_.title), "$($_.ipcCount) classes", ($_.countries -join ', '))
+        $th = Theme-ForTitle $_.title; if (-not $th) { $th = '—' }
+        ,@((Short-Title $_.title), $th, "$($_.ipcCount) classes", ($_.countries -join ', '))
     })
 ) $false
 
@@ -399,12 +479,18 @@ $dives['globalFootprint'] = Dive 'globalFootprint' 'Most Globally Protected Inve
     })
 ) $false
 
-$dives['triadicList'] = Dive 'triadicList' 'Top Triadic Patent Candidates' 'Multi-jurisdiction families that could complete EU+US+JP (Files 6/8)' @('Patent title','Current coverage','Note') @(
-    @($families | Where-Object { $_.countryCount -ge 2 } | Sort-Object countryCount -Descending | Select-Object -First 5 | ForEach-Object {
-        $note = if ($_.hasEP -and $_.hasUS -and -not $_.hasJP) { 'Add Japan to complete triad' }
-                elseif ($_.hasEP -or $_.hasUS) { 'Extend to EU+US+JP' }
-                else { 'File PCT before priority deadline' }
-        ,@((Short-Title $_.title), ($_.countries -join ', '), $note)
+# Triadic = EP + US + JP. None are currently complete, so rank by how close they are:
+#  1) EP+US present (one step away — only Japan missing)  2) EP or US present (two steps away)
+# Patents already in all three are excluded (nothing to extend).
+$triadicRanked = @($families | Where-Object { -not ($_.hasEP -and $_.hasUS -and $_.hasJP) } | ForEach-Object {
+    $have = @(); if ($_.hasEP) { $have += 'EP' }; if ($_.hasUS) { $have += 'US' }; if ($_.hasJP) { $have += 'JP' }
+    $missing = @(); if (-not $_.hasEP) { $missing += 'EP' }; if (-not $_.hasUS) { $missing += 'US' }; if (-not $_.hasJP) { $missing += 'JP' }
+    $score = ($have | Where-Object { $_ -in @('EP','US','JP') }).Count
+    [pscustomobject]@{ fam=$_; have=$have; missing=$missing; score=$score }
+} | Where-Object { $_.score -ge 1 } | Sort-Object @{e={$_.score};desc=$true}, @{e={$_.fam.countryCount};desc=$true} | Select-Object -First 5)
+$dives['triadicList'] = Dive 'triadicList' 'Closest to Triadic (EP+US+JP) Protection' 'Families nearest to triadic coverage — none are complete yet (File 6)' @('Patent title','Has','Still needs') @(
+    @($triadicRanked | ForEach-Object {
+        ,@((Short-Title $_.fam.title), ($_.have -join '+'), ('+' + ($_.missing -join '+')))
     })
 ) $false
 
@@ -417,8 +503,8 @@ $dives['renewal'] = Dive 'renewal' 'Longest-Active Patents' 'Oldest MAScIR paten
 
 $leadTheme = ($themeMap.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1).Key
 $dives['themeTreemap'] = Dive 'themeTreemap' "Top Patents - $(Theme-Short $leadTheme)" 'Largest theme in File 3 inventory' @('Patent title','Year','Status') @(
-    @($patents | Where-Object { $_.theme -eq $leadTheme } | Sort-Object year -Descending | Select-Object -First 10 | ForEach-Object {
-        ,@((Short-Title $_.title), "$($_.year)", (Esc-Json $_.statut))
+    @($patents | Where-Object { $_.theme -eq $leadTheme -and $_.title } | Sort-Object year -Descending | Select-Object -First 10 | ForEach-Object {
+        ,@((Short-Title $_.title), (Yr $_.year), (Esc-Json $_.statut))
     })
 ) $false
 
@@ -437,6 +523,32 @@ $dives['partnerTrend'] = Dive 'partnerTrend' 'Top OCP-Linked Patents' 'Co-owned 
         ,@((Short-Title $_.title), "$($_.year)", (Esc-Json $_.source))
     })
 ) $false
+
+# ---- Theme selector deep-dive (#7): latest 10 TITLED patents per theme ----
+$themePatents = [ordered]@{}
+$themeListOut = @()
+foreach ($k in $themeKeys) {
+    $label = Theme-Short $k
+    $rows = @($patents | Where-Object { $_.theme -eq $k -and $_.title } | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
+        ,@((Short-Title $_.title), (Yr $_.year), (Esc-Json $_.statut))
+    })
+    $themePatents[$label] = @($rows)
+    $themeListOut += @{ label=$label; count=$themeMap[$k] }
+}
+
+# ---- Country selector deep-dive (#11): latest 10 TITLED patents per country/route ----
+$countryPatentsOut = [ordered]@{}
+$countryListOut = @()
+$countryMemberPairs = @($countryMembers.GetEnumerator() | ForEach-Object { [pscustomobject]@{ name=$_.Key; list=$_.Value } } | Sort-Object @{e={$_.list.Count};desc=$true})
+foreach ($cm in $countryMemberPairs) {
+    $titled = @($cm.list | Where-Object { $_.title })
+    if ($titled.Count -lt 1) { continue }
+    $rows = @($titled | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
+        ,@((Short-Title $_.title), (Yr $_.year), (Theme-Short $_.theme))
+    })
+    $countryPatentsOut[$cm.name] = @($rows)
+    $countryListOut += @{ label=$cm.name; count=$cm.list.Count }
+}
 
 $dives['commercialization'] = Dive 'commercialization' 'Actively Licensed Patents' 'Awaiting TTO licensing registry' @('Patent title','Pathway','Partner') @() $true
 $dives['dealsList'] = Dive 'dealsList' 'Recent Licensing Deals' 'Awaiting TTO deal log' @('Patent title','Year','Type','Sector') @() $true
@@ -492,56 +604,42 @@ foreach ($y in $years) {
 $countryTotal = 0
 foreach ($c in $countryTop) { $countryTotal += $c.count }
 
-function Score-Radar([double]$um, [double]$mor, [double]$top, [bool]$lower) {
-    if ($lower) {
-        $span = $mor - $top
-        if ($span -le 0) { return 50 }
-        return [math]::Max(0, [math]::Min(90, [math]::Round(100 * ($mor - $um) / $span)))
-    }
-    $span = $top - $mor
-    if ($span -le 0) { return 50 }
-    return [math]::Max(0, [math]::Min(90, [math]::Round(100 * ($um - $mor) / $span)))
+# Absolute 0-100 score: maps a value between a "world-class best" and a "floor/worst" anchor.
+# Works for both directions (higher-better: best>worst; lower-better: best<worst).
+# UM6P always renders a real magnitude — it never collapses to the centre.
+function Score-Abs([double]$um, [double]$best, [double]$worst) {
+    if ($best -eq $worst) { return 50 }
+    $v = 100 * ($um - $worst) / ($best - $worst)
+    return [math]::Max(0, [math]::Min(100, [math]::Round($v)))
 }
-
+# Frontier (best) / floor (worst) anchors per spoke
 $radarScores = @(
-    (Score-Radar $cagr 14 35 $false),
-    (Score-Radar $avgAbsGap 18 6 $true),
-    (Score-Radar $pctRate 45 85 $false),
-    (Score-Radar $avgCites 0.7 1.8 $false),
-    (Score-Radar 17 8 30 $false),
-    (Score-Radar $ocpShare 75 35 $true)
-)
-$radarBenchMorocco = @(
-    (Score-Radar 14 14 35 $false),
-    (Score-Radar 12 18 6 $true),
-    (Score-Radar 77 45 85 $false),
-    (Score-Radar 0.9 0.7 1.8 $false),
-    (Score-Radar 8 8 30 $false),
-    (Score-Radar 55 75 35 $true)
-)
-$radarBenchAfrica = @(
-    (Score-Radar 11 14 35 $false),
-    (Score-Radar 14 18 6 $true),
-    (Score-Radar 45 45 85 $false),
-    (Score-Radar 0.7 0.7 1.8 $false),
-    (Score-Radar 6 8 30 $false),
-    (Score-Radar 60 75 35 $true)
+    (Score-Abs $cagr 35 0),          # Filing growth (CAGR %)
+    (Score-Abs $avgAbsGap 0 30),     # Theme vs strategy fit (avg |gap| pts, lower better) — targets illustrative
+    (Score-Abs $pctRate 85 0),       # International filing rate %
+    (Score-Abs $avgCites 1.8 0),     # Forward citations per patent
+    (Score-Abs 17 30 0),             # Commercialization rate % (illustrative)
+    (Score-Abs $ocpShare 35 80)      # Partner diversification (OCP concentration %, lower better)
 )
 $radarBenchTop = @(
-    (Score-Radar 35 14 35 $false),
-    (Score-Radar 6 18 6 $true),
-    (Score-Radar 85 45 85 $false),
-    (Score-Radar 1.8 0.7 1.8 $false),
-    (Score-Radar 30 8 30 $false),
-    (Score-Radar 35 75 35 $true)
+    (Score-Abs 35 35 0), (Score-Abs 5 0 30), (Score-Abs 85 85 0),
+    (Score-Abs 1.8 1.8 0), (Score-Abs 30 30 0), (Score-Abs 35 35 80)
+)
+$radarBenchMorocco = @(
+    (Score-Abs 14 35 0), (Score-Abs 15 0 30), (Score-Abs 45 85 0),
+    (Score-Abs 0.9 1.8 0), (Score-Abs 8 30 0), (Score-Abs 55 35 80)
+)
+$radarBenchAfrica = @(
+    (Score-Abs 11 35 0), (Score-Abs 18 0 30), (Score-Abs 30 85 0),
+    (Score-Abs 0.7 1.8 0), (Score-Abs 6 30 0), (Score-Abs 62 35 80)
 )
 $radarActuals = @(
-    "CAGR +$cagr% ($($filingsByYear[2025]) filings in 2025)",
-    "Avg |gap| $([math]::Round($avgAbsGap,0)) pts vs declared theme weights",
-    "$pctRate% PCT/international (File 3)",
-    "$avgCites avg forward cites ($pctCited% cited, File 7)",
-    "17% on live path (illustrative / TTO)",
-    "$ocpShare% of co-filings with OCP (HHI $hhi)"
+    "CAGR +$cagr%/yr (2022-2025); $($filingsByYear[2025]) filings in 2025",
+    "Avg |gap| $([math]::Round($avgAbsGap,0)) pts vs theme strategy weights (targets illustrative)",
+    "$pctRate% filed internationally (PCT/foreign, File 3)",
+    "$avgCites forward citations per patent (Orbit/File 7)",
+    "17% on a live commercial path (illustrative / awaiting TTO)",
+    "OCP concentration $ocpShare% of co-filings (HHI $hhi)"
 )
 
 $payload = [ordered]@{
@@ -551,7 +649,10 @@ $payload = [ordered]@{
     filingsDated = $datedPatents.Count
     filings2025 = $filingsByYear[2025]
     filings2024 = $filingsByYear[2024]
+    filings2026 = if ($filingsByYear.ContainsKey(2026)) { $filingsByYear[2026] } else { 0 }
     cagr = $cagr
+    cagrFrom = $filingsByYear[2022]
+    cagrTo = $filingsByYear[2025]
     pctRate = $pctRate
     grantRate = $grantRate
     grantedCount = $grantedCount
@@ -581,7 +682,14 @@ $payload = [ordered]@{
     alignVals = $alignVals
     citeThemeLabels = $alignLabels
     citeThemeVals = $citeVals
-    countries = @($countryTop | ForEach-Object { @{ country=$_.country; count=$_.count } })
+    citeMatchedVals = $citeMatchedVals
+    citeMatchedTotal = $citeMatchedTotal
+    citeSampleTotal = $citations.Count
+    countryTreemap = $countryTreemap
+    countryPatents = $countryPatentsOut
+    countryList = $countryListOut
+    themePatents = $themePatents
+    themeList = $themeListOut
     partnerYears = @($partnerYears)
     partnerOcp = @($partnerYears | ForEach-Object { $partnerOcp[$_] })
     partnerOther = @($partnerYears | ForEach-Object { $partnerOther[$_] })
@@ -589,8 +697,10 @@ $payload = [ordered]@{
     partnerSolo = @($partnerYears | ForEach-Object { $partnerSolo[$_] })
     peakYear = $peakYear
     peakCount = $peakCount
-    countryTotal = $countryTotal
-    countryMetric = 'Unique applications by primary country/route from File 3 geo (empty geo defaults to Morocco)'
+    countryTotal = $totalPatents
+    countryRecorded = ($totalPatents - $countryPatent['Filing country not recorded'])
+    countryNotRecorded = ([int]$countryPatent['Filing country not recorded'])
+    countryMetric = 'Each application counted once by primary filing route (File 3 geo); blank geo shown as a data gap.'
     radarScores = $radarScores
     radarActuals = $radarActuals
     radarBench = @{
