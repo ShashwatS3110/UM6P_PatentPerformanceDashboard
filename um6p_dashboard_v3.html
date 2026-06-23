@@ -168,7 +168,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="header-accent"></div>
 </div>
 <div class="root">
-  <div class="disclaimer"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> <b>Illustrative</b> figures are placeholders not yet verified against TTO/PATSTAT records. <b>Tracked now</b> figures are drawn from Files 3–8.</div>
+  <div class="disclaimer"><i class="ti ti-alert-triangle" style="vertical-align:-2px"></i> <b>Illustrative</b> = no source data yet (TTO licensing, disclosures, PATSTAT originality). <b>Tracked now</b> = computed from Files 3–8 via <code>dashboard_data.js</code> (refresh with <code>scripts/build_dashboard_data.ps1</code>).</div>
   <div class="tabs" id="tabbar"></div>
 
   <!-- TAB 0: OVERVIEW -->
@@ -176,8 +176,8 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="section-kicker">At a Glance</div>
     <div class="subq">Where is the portfolio strong, and where is it stalling?</div>
     <div class="card lead" style="margin-bottom:24px">
-      <span class="statusbadge sb-illus">Illustrative benchmarks</span>
-      <div class="card-t">Leading Indicators vs Benchmarks <i class="ti ti-info-circle info-ic" title="Each spoke is the leading indicator from one tab, rescaled 0–100 where 100 = best-in-class. A larger shape means an all-round stronger portfolio."></i></div>
+      <span class="statusbadge sb-avail">Tracked metrics</span>
+      <div class="card-t">Leading Indicators vs Benchmarks <i class="ti ti-info-circle info-ic" title="Each spoke is a 0–90 score: 0 = below Morocco benchmark, 90 = at/above top-global-institution benchmark on that dimension. Not a percentage of patents. Hover for actual values."></i></div>
       <div class="bench-anchor"></div>
       <div class="radarwrap"><canvas id="cRadar"></canvas></div>
       <div class="insight">Filing pace and research theme concentration are clear strengths. International reach, commercialization, and citation impact are the active gaps — where patents need to become global, earning assets.</div>
@@ -209,7 +209,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Annual Filing Growth Rate (CAGR) <i class="ti ti-info-circle info-ic" title="Compound annual growth rate of filings over the last 3 years."></i></div>
-        <div class="bigstat" style="color:var(--green)">+39%/yr</div>
+        <div class="bigstat" id="statCagr" style="color:var(--green)">+25%/yr</div>
         <div class="benchwrap" data-bench="cagr"></div>
         <div class="insight">+39%/yr over three years — real structural momentum, not a statistical blip. At this pace, filing volume could double by 2027. The bottleneck to watch is whether examination and prosecution capacity scales with the pipeline.</div>
       </div>
@@ -254,13 +254,13 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
           </div>
           <div class="vf-conv">↓ ~67% filed</div>
           <div class="vf-stage" style="width:78%;background:#D7492A">
-            <div class="vf-meta"><div class="vf-n">426</div><div class="vf-l">Patent Applications Filed</div></div>
+            <div class="vf-meta"><div class="vf-n" id="funnelFiled">426</div><div class="vf-l">Patent Applications Filed</div></div>
             <div class="vf-right"><span class="vf-badge" style="background:rgba(255,255,255,.35)">Tracked now</span></div>
           </div>
-          <div class="vf-conv">↓ ~66% granted</div>
+          <div class="vf-conv" id="funnelConvGrant">↓ ~66% granted</div>
           <div class="vf-stage" style="width:65%;background:#E86B4F">
-            <div class="vf-meta"><div class="vf-n">~281</div><div class="vf-l">Patents Granted</div></div>
-            <div class="vf-right"><span class="vf-badge">Illustrative</span></div>
+            <div class="vf-meta"><div class="vf-n" id="funnelGranted">—</div><div class="vf-l">Patents Granted / Maintained</div></div>
+            <div class="vf-right"><span class="vf-badge" style="background:rgba(255,255,255,.35)">Tracked now</span></div>
           </div>
           <div class="vf-conv">↓ ~6% licensed</div>
           <div class="vf-stage" style="width:50%;background:#2D6A4F">
@@ -288,8 +288,8 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="supLabel">Supporting</div>
     <div class="supGrid">
       <div class="card sup">
-        <span class="statusbadge sb-illus">Illustrative</span>
-        <div class="card-t">Portfolio vs Declared Strategy <i class="ti ti-info-circle info-ic" title="Each theme's portfolio share minus its declared strategic priority weight. Positive = over-invested relative to stated strategy; negative = under-invested."></i></div>
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Portfolio vs Declared Strategy <i class="ti ti-info-circle info-ic" title="For each theme: portfolio share (File 3 count ÷ 426) minus declared strategic weight (Env 20%, Sust. Agri 22%, Mineral 18%, Circular 20%, Energy 15%). Positive = over-weighted vs strategy; negative = under-weighted."></i></div>
         <div class="chartwrap"><canvas id="cAlignGap"></canvas></div>
         <div class="insight">Environmental Tech is +25 points over its strategic weight — legacy strength built over decades. AI is −26 points under — filings have not yet caught up with stated ambition. This gap is the clearest planning signal for the TTO's next investment cycle.</div>
       </div>
@@ -316,7 +316,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="leadWrap">
       <div class="card lead clickable" onclick="openDive('globalFootprint')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Patent Filing Countries <i class="ti ti-info-circle info-ic" title="Countries where UM6P holds active patent protection. Box size = number of patents filed. Green = primary market, yellow = secondary, red = minimal coverage."></i></div>
+        <div class="card-t">Patent Filing Countries <i class="ti ti-info-circle info-ic" title="Each of the 426 patent applications is assigned one primary filing route from File 3 status/geo (Morocco OMPIC, WIPO/PCT, etc.). Counts sum to total portfolio — not multi-jurisdiction family members."></i></div>
         <div class="chartwrap" style="height:300px"><canvas id="cCountryTreemap"></canvas></div>
         <div class="insight">Morocco overwhelmingly dominates (400 of 428 filing records) — UM6P patents where it invents, not where its technologies compete. France and the US represent the only meaningful secondary markets, each with under 10 filings. The portfolio is effectively domestic in its legal protection.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 most globally protected inventions</div>
@@ -328,7 +328,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">International Filing Rate <i class="ti ti-info-circle info-ic" title="Share of patent applications extended beyond Morocco through the PCT system or direct foreign filing."></i></div>
-        <div class="bigstat" style="color:var(--red)">6%</div>
+        <div class="bigstat" id="statPctIntl" style="color:var(--red)">8%</div>
         <div class="benchwrap" data-bench="goingIntl"></div>
         <div class="insight">Only 6% of UM6P's applications go international — compared to 77% for Moroccan-invented patents overall. The 94% that stay domestic cannot be enforced in any foreign market. Establishing a default PCT policy for technologies with export potential would move this metric fastest.</div>
       </div>
@@ -342,8 +342,8 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       </div>
       <div class="card sup clickable" onclick="openDive('renewal')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Patent Portfolio Survival Rate <i class="ti ti-info-circle info-ic" title="Share of granted patents still being renewed (annuity fees paid) rather than allowed to lapse — a revealed-preference signal of perceived value."></i></div>
-        <div class="bigstat" style="color:var(--green)">~96%</div>
+        <div class="card-t">Patent Portfolio Survival Rate <i class="ti ti-info-circle info-ic" title="Share of patents in the MAScIR renewal registry (File 5) still paying annuities. Does not cover newer UM6P TTO patents absent from that file."></i></div>
+        <div class="bigstat" id="statRenewal" style="color:var(--green)">~97%</div>
         <div class="benchwrap" data-bench="keptAlive"></div>
         <div class="insight">~96% of granted patents are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 longest-active patents</div>
@@ -461,8 +461,8 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="card-t">Industry Partnership Trend <i class="ti ti-info-circle info-ic" title="Annual patent co-filings by partner type — shows whether UM6P is diversifying its industrial collaborations over time."></i></div>
         <div class="chartwrap" style="height:200px"><canvas id="cPartnerTrend"></canvas></div>
         <div style="display:flex;gap:24px;margin-top:12px">
-          <div><div style="font-size:1.5rem;font-weight:800;color:var(--orange);letter-spacing:-.01em">69%</div><div style="font-size:.72rem;color:var(--text-sub)">of co-owned patents with OCP</div></div>
-          <div><div style="font-size:1.5rem;font-weight:800;color:var(--text-main);letter-spacing:-.01em">0.52</div><div style="font-size:.72rem;color:var(--text-sub)">concentration index (HHI)</div></div>
+          <div><div id="statOcpShare" style="font-size:1.5rem;font-weight:800;color:var(--orange);letter-spacing:-.01em">70%</div><div style="font-size:.72rem;color:var(--text-sub)">of co-owned patents with OCP</div></div>
+          <div><div id="statHhi" style="font-size:1.5rem;font-weight:800;color:var(--text-main);letter-spacing:-.01em">0.58</div><div style="font-size:.72rem;color:var(--text-sub)">concentration index (HHI)</div></div>
         </div>
         <div class="insight">Co-invented filings have grown year-on-year, but OCP accounts for 69% of all co-owned patents — an HHI of 0.52 signals a highly concentrated partnership structure. Solo UM6P filings are growing fastest (now ~20/yr), which is positive, but the OCP dependency means the portfolio's commercial routes remain tied to one partner's R&D budget and strategic priorities. Adding two or three new industrial co-inventors by 2027 would materially reduce this risk.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Top 5 OCP co-owned patents</div>
@@ -518,6 +518,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   </div>
 </div>
 
+<script src="dashboard_data.js"></script>
 <script>
 var TABS = [
   {id:'0', n:'Overview',                    icon:'ti-layout-dashboard'},
@@ -552,34 +553,179 @@ function placeBenchCtrl(tabId){
   else { benchCtrlEl.style.display='none'; }
 }
 
-var execData = [
-  {tab:'1', label:'Patent Filings',              value:'25 in 2025',           status:'g', verdict:'Third consecutive up-year — strongest pace since 2015.'},
-  {tab:'2', label:'Research Theme Distribution', value:'45% Env. Tech · 4% AI', status:'a', verdict:'Legacy strength dominates; AI under-represented vs stated priority.'},
-  {tab:'3', label:'International Filing Rate',   value:'6% via PCT',           status:'r', verdict:'94% of inventions protected only in Morocco.'},
-  {tab:'4', label:'Forward Citations per Patent', value:'0.8 avg · 24% cited', status:'a', verdict:'Early-stage portfolio; impact visible in materials and env. tech.'},
-  {tab:'5', label:'Active Commercialization Rate', value:'17% on a live path', status:'a', verdict:'Below 30% target — most patents dormant.'},
-  {tab:'6', label:'Industry Partnership Trend',  value:'HHI 0.52 · 69% OCP',  status:'r', verdict:'Co-invention growth is positive; concentration in one partner is the risk.'},
-];
-var execGrid = document.getElementById('execTiles');
-execData.forEach(function(d){
-  var tile=document.createElement('div');
-  tile.className='tile tile-'+d.status;
-  tile.onclick=function(){var b=document.querySelectorAll('.tab')[parseInt(d.tab)]; go(d.tab,b)};
-  tile.innerHTML='<div class="tile-l">'+d.label+'</div><div class="tile-v">'+d.value+'</div><div class="tile-verdict">'+d.verdict+'</div>';
-  execGrid.appendChild(tile);
-});
+var D = (typeof DASH_DATA !== 'undefined') ? DASH_DATA : null;
+
+function themeShortLabel(t){
+  if(!t) return '';
+  if(t.indexOf('Environmental')>=0) return 'Env. Tech';
+  if(t.indexOf('Green Agriculture')>=0 || t.indexOf('Sustainable Agriculture')>=0) return 'Sust. Agri';
+  if(t.indexOf('Mineral')>=0) return 'Mineral Proc.';
+  if(t.indexOf('Circular')>=0) return 'Circular Chem.';
+  if(t.indexOf('Energy')>=0) return 'Energy';
+  return t.split(' ')[0];
+}
+
+function buildExecTiles(){
+  if(!D) return;
+  var tm = D.treemap || [];
+  var lead = tm.length ? tm.slice().sort(function(a,b){return b.value-a.value;})[0] : null;
+  var lead2 = tm.length>1 ? tm.slice().sort(function(a,b){return b.value-a.value;})[1] : null;
+  var execData = [
+    {tab:'1', label:'Patent Filings', value:D.filings2025+' in 2025', status:'g',
+      verdict:D.filings2025+' filings in 2025 (up from '+D.filings2024+' in 2024) — '+D.totalPatents+' total in File 3 inventory.'},
+    {tab:'2', label:'Research Theme Distribution',
+      value:(lead?lead.value:0)+'% '+themeShortLabel(lead?lead.label:'')+(lead2?' · '+lead2.value+'% '+themeShortLabel(lead2.label):''),
+      status:'a', verdict:'Portfolio concentration reflects File 3 theme tags; alignment gap chart uses declared strategy weights.'},
+    {tab:'3', label:'International Filing Rate', value:D.pctRate+'% via PCT/intl', status:'r',
+      verdict:'Only '+D.pctRate+'% of '+D.totalPatents+' records carry PCT/international status in File 3.'},
+    {tab:'4', label:'Forward Citations per Patent', value:D.avgCites+' avg · '+D.pctCited+'% cited', status:'a',
+      verdict:'Orbit export (File 7, '+((D.deepdives&&D.deepdives.forwardCitations&&D.deepdives.forwardCitations.rows)?D.deepdives.forwardCitations.rows.length:0)+' families): avg '+D.avgCites+' forward citations.'},
+    {tab:'5', label:'Active Commercialization Rate', value:'17% on a live path', status:'a',
+      verdict:'Still illustrative — awaiting TTO licensing registry (Files 3–8 do not include deal logs).'},
+    {tab:'6', label:'Industry Partnership Trend', value:'HHI '+D.hhi+' · '+D.ocpShare+'% OCP', status:'r',
+      verdict:'Co-filing concentration from File 3 partner fields: OCP share '+D.ocpShare+'%, HHI '+D.hhi+'.'}
+  ];
+  var execGrid = document.getElementById('execTiles');
+  execGrid.innerHTML = '';
+  execData.forEach(function(d){
+    var tile=document.createElement('div');
+    tile.className='tile tile-'+d.status;
+    tile.onclick=function(){var b=document.querySelectorAll('.tab')[parseInt(d.tab)]; go(d.tab,b)};
+    tile.innerHTML='<div class="tile-l">'+d.label+'</div><div class="tile-v">'+d.value+'</div><div class="tile-verdict">'+d.verdict+'</div>';
+    execGrid.appendChild(tile);
+  });
+}
+
+function applyLiveMetrics(){
+  if(!D) return;
+  function setSel(sel, txt){ var el=document.querySelector(sel); if(el) el.textContent=txt; }
+  function fmtGap(v){ return (v>=0?'+':'')+v; }
+  function topTreemap(){
+    var tree=D.treemap||[];
+    var top={label:'',value:0};
+    tree.forEach(function(t){ if(t.value>top.value) top=t; });
+    return top;
+  }
+  function extremaAlign(){
+    var labels=D.alignLabels||[], vals=D.alignVals||[];
+    var over={label:'',val:-999}, under={label:'',val:999};
+    labels.forEach(function(l,i){
+      var v=vals[i]||0;
+      if(v>over.val) over={label:l,val:v};
+      if(v<under.val) under={label:l,val:v};
+    });
+    return {over:over,under:under};
+  }
+  function topCiteTheme(){
+    var labels=D.citeThemeLabels||[], vals=D.citeThemeVals||[];
+    var top={label:'',val:0};
+    labels.forEach(function(l,i){ if((vals[i]||0)>top.val) top={label:l,val:vals[i]}; });
+    return top;
+  }
+  var clist=D.countries&&D.countries.length?D.countries:[];
+  var cvals=clist.map(function(c){return c.count;});
+  var peakYear=D.peakYear||2025, peakCount=D.peakCount||D.filings2025;
+  var morocco=clist[0]||{country:'Morocco',count:0}, cTotal=D.countryTotal||cvals.reduce(function(a,b){return a+b;},0);
+  clist.forEach(function(c){ if(c.country==='Morocco') morocco=c; });
+  var ag=extremaAlign(), tt=topTreemap(), tc=topCiteTheme();
+  var solo2025=(D.partnerSolo&&D.partnerSolo.length)?D.partnerSolo[D.partnerSolo.length-1]:0;
+  var tto2025=(D.filingsTto&&D.filingsTto.length)?D.filingsTto[D.filingsTto.length-1]:0;
+  var radarSc=D.radarScores||[];
+  var weakIdx=0, strongIdx=0;
+  if(radarSc.length){
+    radarSc.forEach(function(s,i){ if(s<radarSc[weakIdx]) weakIdx=i; if(s>radarSc[strongIdx]) strongIdx=i; });
+  }
+  var radarDims=['filing growth','theme alignment','international reach','citation impact','commercialization','partnership diversity'];
+
+  setSel('#tab0 .card.lead .insight',
+    'Each spoke scores 0–90 (not % of patents): where UM6P sits between Morocco and top-global-institution benchmarks. Strength: '+radarDims[strongIdx]+' ('+(radarSc[strongIdx]||'—')+'/90). Gap: '+radarDims[weakIdx]+' ('+(radarSc[weakIdx]||'—')+'/90). Hover for raw metrics.');
+
+  setSel('#tab1 .card.lead .insight',
+    D.filings2025+' dated filings in 2025'+(peakYear===2025?' — peak year in File 3':', vs peak of '+peakCount+' in '+peakYear)+'. Chart covers '+D.filingsDated+' applications with a filing year ('+D.yearMin+'–'+D.yearMax+'); '+D.filingsUndated+' legacy rows lack year/date in File 3.');
+
+  setSel('#tab1 .supGrid .card.sup:nth-child(1) .insight',
+    '+'+D.cagr+'%/yr CAGR from 2022→2025 dated filings (File 3). '+D.filingsUndated+' undated records excluded from year chart and CAGR.');
+
+  setSel('#tab1 .supGrid .card.sup:nth-child(3) .insight',
+    '~'+D.avgGrantLag+' years from filing to grant (File 5 renewal cohort). Faster than the illustrative Morocco average of ~2.5 years on the benchmark bar.');
+
+  setSel('#funnelFiled', D.totalPatents);
+  setSel('#funnelGranted', D.grantedCount);
+  setSel('#funnelConvGrant', '↓ ~'+D.grantRate+'% granted');
+  setSel('#tab1 .vf-section .insight',
+    'Tracked stages: '+D.totalPatents+' applications filed and '+D.grantedCount+' granted/maintained ('+D.grantRate+'% grant rate from File 3). Upstream disclosure and downstream licensing stages remain illustrative until TTO pipeline data is linked.');
+
+  setSel('#tab2 .card.lead .insight',
+    tt.label+' leads at '+tt.value+'% of the portfolio (File 3 theme tags). Five-theme shares are rounded to sum to 100%.');
+
+  function alignExplain(label, gap){
+    var i=D.alignLabels?D.alignLabels.indexOf(label):-1;
+    var share=(i>=0&&D.alignShareVals)?D.alignShareVals[i]:'?';
+    var tgt=(i>=0&&D.strategyTargetVals)?D.strategyTargetVals[i]:'?';
+    return label+': '+share+'% filed vs '+tgt+'% target ('+fmtGap(gap)+' pts)';
+  }
+  setSel('#tab2 .supGrid .card.sup:nth-child(1) .insight',
+    'Gap = portfolio share minus declared strategic weight per theme (File 3). '+alignExplain(ag.over.label,ag.over.val)+'; '+alignExplain(ag.under.label,ag.under.val)+'.');
+
+  setSel('#tab2 .supGrid .card.sup:nth-child(2) .insight',
+    'Illustrative only — bars are design placeholders (14–31% per theme), not computed from TTO licensing data. Awaiting deal registry; do not compare to tracked filing or citation charts.');
+
+  setSel('#tab2 .supGrid .card.sup:nth-child(3) .insight',
+    (tc.val>0?tc.label+' averages '+tc.val+' forward citations per patent (Orbit/File 7 theme match).':'Citation-by-theme uses Orbit export matched to File 3 themes.')+' Portfolio-wide avg is '+D.avgCites+' cites.');
+
+  setSel('#tab3 .card.lead .insight',
+    morocco.country+': '+morocco.count+' of '+D.totalPatents+' unique applications ('+Math.round(100*morocco.count/Math.max(1,D.totalPatents))+'%) by primary filing route in File 3. Other routes: '+clist.slice(1,4).map(function(c){return c.country+' ('+c.count+')';}).join(', ')+'.');
+
+  setSel('#tab3 .supGrid .card.sup:nth-child(1) .insight',
+    D.pctRate+'% of File 3 records carry PCT/international status — well below the illustrative Morocco-wide benchmark of 77% on the comparison bar.');
+
+  setSel('#tab3 .supGrid .card.sup:nth-child(2) .insight',
+    (D.triadicShare<1?'Near-zero':'~'+D.triadicShare+'%')+' tri-market coverage (EU + US + Japan) from File 6 family jurisdictions. Curate high-potential families for extension before priority deadlines.');
+
+  setSel('#tab3 .supGrid .card.sup:nth-child(3) .insight',
+    '~'+D.renewalRate+'% active ('+(D.renewalActiveCount||'?')+' of '+(D.renewalTotal||'?')+') in the MAScIR renewal registry (File 5) — not the full '+D.totalPatents+'-patent portfolio. '+D.grantedCount+' applications granted in File 3; newer TTO patents may not yet be in File 5 or at annuity stage.');
+
+  setSel('#tab4 .card.lead .insight',
+    D.avgCites+' citations per patent on average; '+D.pctCited+'% cited at least once (Orbit/File 7). Young portfolio — citation counts typically mature over 5–7 years.');
+
+  setSel('#tab4 .supGrid .card.sup:nth-child(2) .insight',
+    '~'+D.avgIpc+' distinct IPC classes per patent family on average (File 6). The broadest families span 3–5 classes — see the technology-scope deep dive.');
+
+  setSel('#tab6 .card.lead .insight',
+    'Co-filing mix 2019–2025 from File 3 partner fields: '+tto2025+' TTO-originated filings in 2025, '+solo2025+' with no listed co-inventor. OCP appears in '+D.ocpShare+'% of records with partners (HHI '+D.hhi+') — reflects phosphate/mining co-development, not every CERPHOS lab filing.');
+
+  var tab1stats=document.querySelectorAll('#tab1 .supGrid .bigstat');
+  if(tab1stats.length>=2){ tab1stats[0].textContent='+'+D.cagr+'%/yr'; tab1stats[1].textContent='~'+D.avgGrantLag+' years'; }
+  var elCagr=document.getElementById('statCagr'); if(elCagr) elCagr.textContent='+'+D.cagr+'%/yr';
+  var elPct=document.getElementById('statPctIntl'); if(elPct) elPct.textContent=D.pctRate+'%';
+  var elRen=document.getElementById('statRenewal'); if(elRen) elRen.textContent='~'+D.renewalRate+'%';
+  var elOcp=document.getElementById('statOcpShare'); if(elOcp) elOcp.textContent=D.ocpShare+'%';
+  var elHhi=document.getElementById('statHhi'); if(elHhi) elHhi.textContent=D.hhi;
+  var tab3stats=document.querySelectorAll('#tab3 .supGrid .bigstat');
+  if(tab3stats.length>=3){ tab3stats[0].textContent=D.pctRate+'%'; tab3stats[1].textContent=(D.triadicShare<1?'~0':D.triadicShare)+'%'; tab3stats[2].textContent='~'+D.renewalRate+'%'; }
+  var tab4stats=document.querySelectorAll('#tab4 .statpair .sp-v');
+  if(tab4stats.length>=2){ tab4stats[0].textContent=D.avgCites; tab4stats[1].textContent=D.pctCited+'%'; }
+  var tab4b=document.querySelector('#tab4 .card.sup:nth-child(2) .bigstat');
+  if(tab4b) tab4b.textContent='~'+D.avgIpc+' classes';
+}
+
+buildExecTiles();
 
 /* ---- Benchmark system (external comparators) ---- */
 var BENCH = {
-  cagr:       {um:39,  max:40,  dec:0, prefix:'+', suffix:'%', lower:false, cmp:{morocco:14, africa:11, top:22}},
-  timeToGrant:{um:1.8, max:3,   dec:1,             suffix:' yr',lower:true,  cmp:{morocco:2.5, africa:2.8, top:2.0}},
-  fwdCit:     {um:0.8, max:1.8, dec:1,             suffix:'',   lower:false, cmp:{morocco:0.9, africa:0.7, top:1.8}},
-  techBreadth:{um:1.9, max:3,   dec:1,             suffix:'',   lower:false, cmp:{morocco:1.8, africa:1.7, top:2.8}},
-  goingIntl:  {um:6,   max:100, dec:0,             suffix:'%',  lower:false, cmp:{morocco:77,  africa:45, top:85}},
-  topTier:    {um:0.5, umText:'~0%', max:20, dec:0, suffix:'%', lower:false, cmp:{morocco:5,  africa:4,  top:15}},
-  keptAlive:  {um:96,  max:100, dec:0,             suffix:'%',  lower:false, cmp:{morocco:85,  africa:80, top:90}},
-  spinoffs:   {um:2,   max:40,  dec:0,             suffix:'/yr',lower:false, cmp:{morocco:5,   africa:4,  top:38}}
+  cagr:       {um:39,  max:40,  dec:0, prefix:'+', suffix:'%', lower:false, barMax:40, cmp:{morocco:14, africa:11, top:22}},
+  timeToGrant:{um:1.8, max:3,   dec:1,             suffix:' yr',lower:true,  barMax:3.5, cmp:{morocco:2.5, africa:2.8, top:2.0}},
+  fwdCit:     {um:0.8, max:1.8, dec:1,             suffix:'',   lower:false, barMax:2.0, cmp:{morocco:0.9, africa:0.7, top:1.8}},
+  techBreadth:{um:1.9, max:3,   dec:1,             suffix:'',   lower:false, barMax:3.5, cmp:{morocco:1.8, africa:1.7, top:2.8}},
+  goingIntl:  {um:6,   max:100, dec:0,             suffix:'%',  lower:false, barMax:100, cmp:{morocco:77,  africa:45, top:85}},
+  topTier:    {um:0.5, umText:'~0%', max:20, dec:0, suffix:'%', lower:false, barMax:20, cmp:{morocco:5,  africa:4,  top:15}},
+  keptAlive:  {um:96,  max:100, dec:0,             suffix:'%',  lower:false, barMax:100, cmp:{morocco:85,  africa:80, top:90}},
+  spinoffs:   {um:2,   max:40,  dec:0,             suffix:'/yr',lower:false, barMax:40, cmp:{morocco:5,   africa:4,  top:38}}
 };
+if(D && D.bench){
+  Object.keys(D.bench).forEach(function(k){ if(BENCH[k]) BENCH[k].um = D.bench[k]; });
+  if(D.triadicShare < 1 && BENCH.topTier) BENCH.topTier.umText = '~0%';
+}
 /* ---- Target system (internal UM6P targets for private-data metrics) ---- */
 var TARGET = {
   filingsRes:     {um:3.4, target:5.0,   max:7,    dec:1, suffix:'/100 staff', lower:false},
@@ -593,7 +739,7 @@ var TARGET = {
   commRate:       {um:17,  target:30,    max:50,   dec:0, suffix:'%',          lower:false}
 };
 var BENCH_NAMES = {morocco:'Morocco avg', africa:'Africa avg', top:'Top global inst.'};
-var RADAR_BENCH = {
+var RADAR_BENCH = (D && D.radarBench) ? D.radarBench : {
   morocco:[48,30,34,32,28,55],
   africa: [42,28,30,28,26,50],
   top:    [88,82,90,95,90,78]
@@ -606,20 +752,25 @@ function fmtB(b,v){
   return (b.prefix||'')+Number(num).toFixed(b.dec||0)+suf;
 }
 function pct(v,max){ return Math.max(2, Math.min(100, v/max*100)); }
+function benchScaleMax(b, cmpVal){
+  if(b.barMax) return b.barMax;
+  return Math.max(b.um, cmpVal, b.cmp.top, b.cmp.morocco, b.cmp.africa) * 1.1;
+}
 function renderBench(){
   document.querySelectorAll('[data-bench]').forEach(function(el){
     var b=BENCH[el.getAttribute('data-bench')]; if(!b) return;
     var cmpVal=b.cmp[currentBench];
-    var dynamicMax=Math.max(b.um,cmpVal)*1.3;
+    var scaleMax=benchScaleMax(b, cmpVal);
     var umBetter=b.lower?(b.um<=cmpVal):(b.um>=cmpVal);
     var col;
     if(b.lower) col=umBetter?'#2D6A4F':(b.um<=cmpVal*1.15?'#E9C46A':'#B91C1C');
     else col=umBetter?'#2D6A4F':(b.um>=cmpVal*0.85?'#E9C46A':'#B91C1C');
     var umTxt=b.umText||fmtB(b,b.um);
+    var scaleLbl=(b.prefix||'')+'0–'+Number(scaleMax).toFixed(b.dec||0)+(b.suffix||'');
     el.innerHTML=
-      '<div class="benchrow"><span class="benchlab">UM6P</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(b.um,dynamicMax)+'%;background:'+col+'"></div></div><span class="benchout">'+umTxt+'</span></div>'+
-      '<div class="benchrow"><span class="benchlab">'+BENCH_NAMES[currentBench]+'</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(cmpVal,dynamicMax)+'%;background:#B8B4AC"></div></div><span class="benchout">'+fmtB(b,cmpVal)+'</span></div>'+
-      (b.lower?'<div class="benchcaption">Lower is better.</div>':'');
+      '<div class="benchrow"><span class="benchlab">UM6P</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(b.um,scaleMax)+'%;background:'+col+'"></div></div><span class="benchout">'+umTxt+'</span></div>'+
+      '<div class="benchrow"><span class="benchlab">'+BENCH_NAMES[currentBench]+'</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(cmpVal,scaleMax)+'%;background:#B8B4AC"></div></div><span class="benchout">'+fmtB(b,cmpVal)+'</span></div>'+
+      '<div class="benchcaption">Scale: '+scaleLbl+(b.lower?' · lower is better':'')+'</div>';
   });
 }
 function renderTarget(){
@@ -658,30 +809,72 @@ function setBench(k){
 
 var co={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}};
 
-/* Radar chart — Overview */
+var filingLabels = D ? D.filingsYears.map(String) : ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'];
+var filingMascir = D ? D.filingsMascir : [18,12,7,3,1,2,4,5,5,5,5];
+var filingTto = D ? D.filingsTto : [10,8,6,2,1,1,4,7,9,11,17];
+var filingOther = D ? D.filingsOther : [3,2,1,1,1,1,1,1,2,2,3];
+var treemapTree = D ? D.treemap : [
+  {label:'Environmental Tech & Digital Mining',value:45},
+  {label:'Sustainable Agriculture',value:22},
+  {label:'Mineral Processing',value:25},
+  {label:'Circular Chemistry',value:12},
+  {label:'Energy & Storage',value:7}
+];
+var alignLabels = D ? D.alignLabels : ['Env. Tech & Mining','Sust. Agriculture','Mineral Processing','Circular Chemistry','Energy & Storage'];
+var alignVals = D ? D.alignVals : [25,-10,7,-8,-8];
+var citeLabels = D ? D.citeThemeLabels : alignLabels;
+var citeVals = D ? D.citeThemeVals : [0.9,0.6,0,0,0];
+var countryList = D && D.countries && D.countries.length ? D.countries.slice(0, 10) : [
+  {country:'Morocco',count:173},{country:'Russia',count:25},{country:'China',count:17},
+  {country:'United States',count:16},{country:'France',count:16},{country:'WIPO',count:12},
+  {country:'EPO',count:9},{country:'OAPI',count:8},{country:'India',count:8},{country:'Germany',count:8}
+];
+var countryLabels = countryList.map(function(c){return c.country;});
+var countryVals = countryList.map(function(c){return c.count;});
+var countryBg = countryVals.map(function(v){if(v>100)return'#2D6A4F';if(v>=8)return'#D7492A';if(v>=4)return'#E86B4F';return'#B8B4AC';});
+var partnerLabels = D ? D.partnerYears.map(String) : ['2019','2020','2021','2022','2023','2024','2025'];
+var partnerOcp = D ? D.partnerOcp : [2,3,2,2,3,2,2];
+var partnerOther = D ? D.partnerOther : [1,1,1,0,1,2,1];
+var partnerAcad = D ? D.partnerAcad : [1,0,1,1,1,0,2];
+var partnerSolo = D ? D.partnerSolo : [5,9,5,10,11,14,20];
+var radarScores = D && D.radarScores ? D.radarScores : [ScaleRadar(25,22),57,ScaleRadar(8,77),ScaleRadar(0.8,1.8),57,10];
+var radarActuals = D && D.radarActuals ? D.radarActuals : [];
+function ScaleRadar(v,top){ return Math.min(100, Math.round(100*v/top)); }
+
+/* Radar chart — Overview (0–100 index, NOT raw patent counts) */
 radarChart = new Chart(document.getElementById('cRadar'),{
   type:'radar',
   data:{
-    labels:['Patent Filings','Research Theme Distribution','International Filing Rate','Forward Citations','Commercialization Rate','Industry Partnerships'],
+    labels:['Filing Growth (CAGR)','Theme vs Strategy','International Filing Rate','Forward Citations','Commercialization Rate','Industry Partnerships'],
     datasets:[
-      {label:'UM6P',data:[72,58,18,40,22,30],borderColor:'#D7492A',backgroundColor:'rgba(215,73,42,.18)',borderWidth:2,pointBackgroundColor:'#D7492A',pointRadius:4},
+      {label:'UM6P',data:radarScores,borderColor:'#D7492A',backgroundColor:'rgba(215,73,42,.18)',borderWidth:2,pointBackgroundColor:'#D7492A',pointRadius:4},
       {label:BENCH_NAMES[currentBench],data:RADAR_BENCH[currentBench],borderColor:'#757575',backgroundColor:'rgba(117,117,117,.06)',borderWidth:2,borderDash:[6,4],pointBackgroundColor:'#757575',pointRadius:3}
     ]
   },
   options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{position:'bottom',labels:{font:{family:'Montserrat',size:11},color:'#101010',boxWidth:14,padding:14}}},
-    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:'#9E9E9E',backdropColor:'transparent',font:{family:'Montserrat',size:9}},grid:{color:'rgba(0,0,0,.08)'},angleLines:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{family:'Montserrat',size:10,weight:'600'},color:'#101010'}}}}
+    plugins:{
+      legend:{position:'bottom',labels:{font:{family:'Montserrat',size:11},color:'#101010',boxWidth:14,padding:14}},
+      tooltip:{callbacks:{
+        title:function(items){ return items[0].label; },
+        label:function(ctx){
+          var idx=ctx.dataIndex, score=ctx.raw, actual=radarActuals[idx]||'';
+          var line=ctx.dataset.label+': '+score+'/90 vs benchmarks';
+          return actual?[line, actual]:line;
+        }
+      }}
+    },
+    scales:{r:{min:0,max:90,ticks:{stepSize:30,color:'#9E9E9E',backdropColor:'transparent',font:{family:'Montserrat',size:9}},grid:{color:'rgba(0,0,0,.08)'},angleLines:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{family:'Montserrat',size:10,weight:'600'},color:'#101010'}}}}
 });
 
 /* Patent Filings — stacked bar (Tab 1) */
 new Chart(document.getElementById('cFilings'),{
   type:'bar',
   data:{
-    labels:['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],
+    labels:filingLabels,
     datasets:[
-      {label:'MAScIR',    data:[18,12,7,3,1,2,4,5,5,5,5],  backgroundColor:'#A83218'},
-      {label:'UM6P TTO',  data:[10,8,6,2,1,1,4,7,9,11,17], backgroundColor:'#D7492A'},
-      {label:'Other labs',data:[3,2,1,1,1,1,1,1,2,2,3],    backgroundColor:'#F5C4B8'}
+      {label:'MAScIR',    data:filingMascir,  backgroundColor:'#A83218'},
+      {label:'UM6P TTO',  data:filingTto, backgroundColor:'#D7492A'},
+      {label:'OCP/CERPHOS',data:filingOther,    backgroundColor:'#F5C4B8'}
     ]
   },
   options:{...co, scales:{x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}},
@@ -689,17 +882,11 @@ new Chart(document.getElementById('cFilings'),{
 });
 
 /* Research Theme Treemap (Tab 2) */
-var themeColors={'Environmental Tech & Digital Mining':'#D7492A','Sustainable Agriculture':'#E86B4F','Health':'#B45309','AI':'#A83218','Other':'#B8B4AC'};
+var themeColors={'Environmental Tech & Digital Mining':'#D7492A','Sustainable Agriculture':'#E86B4F','Mineral Processing':'#B45309','Circular Chemistry':'#A83218','Energy & Storage':'#D7492A','Health':'#B45309','AI':'#A83218','Other':'#B8B4AC'};
 new Chart(document.getElementById('cTreemap'),{
   type:'treemap',
   data:{datasets:[{
-    tree:[
-      {label:'Environmental Tech & Digital Mining',value:45},
-      {label:'Sustainable Agriculture',value:22},
-      {label:'Health',value:18},
-      {label:'AI',value:4},
-      {label:'Other',value:11}
-    ],
+    tree:treemapTree,
     key:'value',groups:['label'],
     backgroundColor:function(ctx){return ctx.raw&&ctx.raw._data?(themeColors[ctx.raw._data.label]||'#cbd5e1'):'#cbd5e1';},
     borderWidth:2,borderColor:'#ffffff',spacing:1,
@@ -712,8 +899,8 @@ new Chart(document.getElementById('cTreemap'),{
 /* Alignment Gap (Tab 2) */
 new Chart(document.getElementById('cAlignGap'),{
   type:'bar',
-  data:{labels:['Env. Tech & Mining','Sust. Agriculture','Health','AI','Other'],
-    datasets:[{data:[25,2,-2,-26,1],backgroundColor:function(c){return c.raw>=0?'#D7492A':'#B8B4AC';}}]},
+  data:{labels:alignLabels,
+    datasets:[{data:alignVals,backgroundColor:function(c){return c.raw>=0?'#D7492A':'#B8B4AC';}}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
     tooltip:{callbacks:{label:function(ctx){var v=ctx.raw;return(v>=0?'+':'')+v+' pts vs target';}}},
     annotation:{}},
@@ -721,10 +908,10 @@ new Chart(document.getElementById('cAlignGap'),{
       y:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}}
 });
 
-/* Commercial Success by Theme (Tab 2) */
+/* Commercial Success by Theme (Tab 2) — illustrative until TTO data */
 new Chart(document.getElementById('cCommByTheme'),{
   type:'bar',
-  data:{labels:['Env. Tech & Mining','Sust. Agriculture','Health','AI','Other'],
+  data:{labels:alignLabels,
     datasets:[{data:[14,9,22,31,11],backgroundColor:'#D7492A',borderRadius:0}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
     scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},callback:function(v){return v+'%';}}},
@@ -734,20 +921,18 @@ new Chart(document.getElementById('cCommByTheme'),{
 /* Citation Quality by Theme (Tab 2) */
 new Chart(document.getElementById('cCiteByTheme'),{
   type:'bar',
-  data:{labels:['Env. Tech & Mining','Sust. Agriculture','Health','AI','Other'],
-    datasets:[{data:[0.9,0.6,1.1,0.3,0.7],backgroundColor:'#E86B4F',borderRadius:0}]},
+  data:{labels:citeLabels,
+    datasets:[{data:citeVals,backgroundColor:'#E86B4F',borderRadius:0}]},
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
     scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},
       y:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}}
 });
 
 /* Country Coverage — horizontal bar (Tab 3) */
-var countryVals=[400,9,5,4,3,2,2,1,1,1];
-var countryBg=countryVals.map(function(v){if(v>100)return'#2D6A4F';if(v>=4)return'#D7492A';if(v>=2)return'#E86B4F';return'#B8B4AC';});
 new Chart(document.getElementById('cCountryTreemap'),{
   type:'bar',
   data:{
-    labels:['Morocco','France','United States','Spain','Germany','United Kingdom','Portugal','Italy','Saudi Arabia','Egypt'],
+    labels:countryLabels,
     datasets:[{data:countryVals,backgroundColor:countryBg,borderWidth:0}]
   },
   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
@@ -762,12 +947,12 @@ new Chart(document.getElementById('cCountryTreemap'),{
 new Chart(document.getElementById('cPartnerTrend'),{
   type:'bar',
   data:{
-    labels:['2019','2020','2021','2022','2023','2024','2025'],
+    labels:partnerLabels,
     datasets:[
-      {label:'OCP',             data:[2,3,2,2,3,2,2],  backgroundColor:'#101010'},
-      {label:'Other industry',  data:[1,1,1,0,1,2,1],  backgroundColor:'#D7492A'},
-      {label:'Academic partner',data:[1,0,1,1,1,0,2],  backgroundColor:'#2D6A4F'},
-      {label:'Solo UM6P',       data:[5,9,5,10,11,14,20],backgroundColor:'#C5D8E0'}
+      {label:'OCP',             data:partnerOcp,  backgroundColor:'#101010'},
+      {label:'Other industry',  data:partnerOther,  backgroundColor:'#D7492A'},
+      {label:'Academic partner',data:partnerAcad,  backgroundColor:'#2D6A4F'},
+      {label:'Solo UM6P',       data:partnerSolo,backgroundColor:'#C5D8E0'}
     ]
   },
   options:{responsive:true,maintainAspectRatio:false,
@@ -778,197 +963,8 @@ new Chart(document.getElementById('cPartnerTrend'),{
     }}
 });
 
-/* ---- Deep-dive data ---- */
-var DEEPDIVE = {
-  netFilings:{
-    title:'Most Recent Patent Filings', sub:'10 most recently filed applications by institution', illustrative:true,
-    cols:['Patent title','Year','Institution / Lab','Theme'],
-    rows:[
-      ['Solar-Assisted Phosphate Beneficiation Process','2025','Green Energy Lab — UM6P TTO','Environmental Tech'],
-      ['AI-Driven Crop Stress Detection System','2025','AgriTech Center — UM6P TTO','AI'],
-      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Materials Lab — UM6P TTO','Environmental Tech'],
-      ['Drought-Resilient Seed Coating Formulation','2024','Sustainable Agri Lab — UM6P TTO','Sustainable Agriculture'],
-      ['Modular Water Desalination Membrane','2024','Digital Mining Lab — UM6P TTO','Environmental Tech'],
-      ['Point-of-Care Biomarker Sensor','2024','Health Innovation Lab — UM6P TTO','Health'],
-      ['Autonomous Soil Sensing Drone Platform','2024','AgriTech Center — UM6P TTO','Sustainable Agriculture'],
-      ['Phosphogypsum Valorization Method','2023','MAScIR','Environmental Tech'],
-      ['Smart Irrigation Scheduling Algorithm','2023','AgriTech Center — UM6P TTO','AI'],
-      ['Mining Tailings Recovery Process','2023','MAScIR','Environmental Tech']
-    ]
-  },
-  timeToGrant:{
-    title:'Slowest Patents to Grant', sub:'Top 5 longest filing-to-grant timelines — examination bottlenecks', illustrative:true,
-    cols:['Patent title','Filed','Granted','Years'],
-    rows:[
-      ['Heavy Metal Remediation Process','2017','2021','4.1 yrs'],
-      ['Phosphate Rock Beneficiation Catalyst','2016','2019','3.4 yrs'],
-      ['Bio-Based Soil Amendment Compound','2018','2021','3.0 yrs'],
-      ['Closed-Loop Mine Water Treatment System','2017','2020','2.8 yrs'],
-      ['Slow-Release Fertilizer Coating','2015','2018','2.6 yrs']
-    ]
-  },
-  forwardCitations:{
-    title:'Most-Cited Patents', sub:'Top 10 by forward citations — highest technological influence', illustrative:true,
-    cols:['Patent title','Citations','Filed','Theme'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','6','2019','Environmental Tech'],
-      ['Closed-Loop Mine Water Treatment System','5','2020','Environmental Tech'],
-      ['Slow-Release Fertilizer Coating','4','2018','Sustainable Agriculture'],
-      ['Bio-Based Soil Amendment Compound','3','2020','Sustainable Agriculture'],
-      ['Heavy Metal Remediation Process','3','2019','Environmental Tech'],
-      ['Low-Energy Desalination Membrane','2','2021','Environmental Tech'],
-      ['Diagnostic Biosensor Array','2','2021','Health'],
-      ['Precision Nutrient Delivery System','2','2020','Sustainable Agriculture'],
-      ['Mining Waste Upcycling Method','1','2022','Environmental Tech'],
-      ['Crop Yield Prediction Model','1','2022','AI']
-    ]
-  },
-  origIndex:{
-    title:'Most Original Patents', sub:'Top 5 by Originality Index — broadest cross-domain citation diversity', illustrative:true,
-    cols:['Patent title','Originality score','Technology fields cited','Theme'],
-    rows:[
-      ['Integrated Mine-to-Fertilizer Process Platform','0.71','Chemistry, Env. Eng., Biology, Computing','Environmental Tech'],
-      ['AI-Optimized Irrigation Controller','0.64','Computing, Agronomy, Sensors, Hydrology','AI'],
-      ['Multi-Modal Diagnostic Biosensor','0.59','Biochemistry, Electronics, Optics, Medicine','Health'],
-      ['Phosphate Recovery from Wastewater','0.54','Chemistry, Env. Eng., Membrane Tech','Environmental Tech'],
-      ['Precision Fertigation Algorithm','0.51','Computing, Agronomy, Statistics, Sensors','AI']
-    ]
-  },
-  techBreadth:{
-    title:'Broadest Patents by Technology Scope', sub:'Top 5 by distinct IPC technology classifications', illustrative:true,
-    cols:['Patent title','IPC classes','Theme'],
-    rows:[
-      ['Integrated Mine-to-Fertilizer Process Platform','5 classes','Environmental Tech'],
-      ['Multi-Sensor Precision Agriculture System','4 classes','Sustainable Agriculture'],
-      ['Combined Water-Energy Recovery Unit','4 classes','Environmental Tech'],
-      ['Hybrid Biosensor-Diagnostics Device','3 classes','Health'],
-      ['AI-Optimized Industrial Control System','3 classes','AI']
-    ]
-  },
-  globalFootprint:{
-    title:'Most Globally Protected Inventions', sub:'Top 5 by number of countries with active protection', illustrative:true,
-    cols:['Patent title','Countries covered','# Countries'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','Morocco, France, US, Spain, Germany','5'],
-      ['Closed-Loop Mine Water Treatment System','Morocco, France, US, Egypt','4'],
-      ['Slow-Release Fertilizer Coating','Morocco, France, Spain','3'],
-      ['Low-Energy Desalination Membrane','Morocco, Saudi Arabia, UAE','3'],
-      ['Diagnostic Biosensor Array','Morocco, France','2']
-    ]
-  },
-  triadicList:{
-    title:'Top Triadic Patent Candidates', sub:'Patents best positioned for EU + US + Japan extension', illustrative:true,
-    cols:['Patent title','Current coverage','Rationale'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','MA, FR, US, ES, DE','Already in EU/US — add JP to complete triadic'],
-      ['Low-Energy Desalination Membrane','MA, SA, UAE','High global demand; extend to EP, US, JP'],
-      ['Slow-Release Fertilizer Coating','MA, FR, ES','Strong agrochemical market; extend to US, JP'],
-      ['Diagnostic Biosensor Array','MA, FR','Medical device potential; extend to US, EP, JP'],
-      ['AI-Driven Crop Stress Detection','MA only','Early-stage; PCT filing recommended before 12 months']
-    ]
-  },
-  renewal:{
-    title:'Longest-Active Patents', sub:'Top 5 oldest patents still being renewed', illustrative:true,
-    cols:['Patent title','Filed','Years active'],
-    rows:[
-      ['Phosphate Ore Flotation Reagent','2013','13 years'],
-      ['Catalytic Sulfuric Acid Recovery Process','2014','12 years'],
-      ['Granulated Fertilizer Blending Method','2015','11 years'],
-      ['Mining Slurry Dewatering System','2016','10 years'],
-      ['Phosphoric Acid Purification Technique','2017','9 years']
-    ]
-  },
-  commercialization:{
-    title:'Actively Licensed Patents', sub:'Top 5 under live licensing or commercial partnership', illustrative:true,
-    cols:['Patent title','Pathway','Partner type'],
-    rows:[
-      ['Slow-Release Fertilizer Coating','Licensed','Agri-input distributor'],
-      ['Diagnostic Biosensor Array','Option agreement','MedTech spin-off'],
-      ['Precision Nutrient Delivery System','Licensed','OCP'],
-      ['Low-Energy Desalination Membrane','Partnership','Water utility'],
-      ['Crop Yield Prediction Model','Licensed','AgriTech startup']
-    ]
-  },
-  dealsList:{
-    title:'Recent Licensing Deals', sub:'Top 5 most recent agreements signed', illustrative:true,
-    cols:['Patent title','Year','Type','Partner sector'],
-    rows:[
-      ['Precision Nutrient Delivery System','2025','Licence','Agricultural inputs'],
-      ['Crop Yield Prediction Model','2024','Licence','AgriTech startup'],
-      ['Diagnostic Biosensor Array','2024','Option','MedTech'],
-      ['Low-Energy Desalination Membrane','2023','Partnership','Water utility'],
-      ['Slow-Release Fertilizer Coating','2023','Licence','Agrochemical distributor']
-    ]
-  },
-  themeTreemap:{
-    title:'Top Patents — Environmental Tech & Digital Mining', sub:'Top 10 in the largest portfolio theme', illustrative:true,
-    cols:['Patent title','Year','Status'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','2019','Active'],
-      ['Closed-Loop Mine Water Treatment System','2020','Active'],
-      ['Low-Energy Desalination Membrane','2021','Active'],
-      ['Mining Waste Upcycling Method','2022','Active'],
-      ['Heavy Metal Remediation Process','2019','Active'],
-      ['Phosphogypsum Valorization Method','2023','Active'],
-      ['Mining Tailings Recovery Process','2023','Active'],
-      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Filed'],
-      ['Modular Water Desalination Membrane','2024','Filed'],
-      ['Solar-Assisted Phosphate Beneficiation Process','2025','Filed']
-    ]
-  },
-  commByTheme:{
-    title:'Commercialization by Research Theme', sub:'Top licensed patents across all themes', illustrative:true,
-    cols:['Patent title','Theme','Commercialization pathway'],
-    rows:[
-      ['Crop Yield Prediction Model','AI','Licensed to AgriTech startup'],
-      ['Diagnostic Biosensor Array','Health','Option — MedTech firm'],
-      ['Precision Nutrient Delivery System','Env. Tech','Licensed to OCP'],
-      ['Slow-Release Fertilizer Coating','Sust. Agriculture','Licensed — distributor'],
-      ['Low-Energy Desalination Membrane','Env. Tech','Partnership — water utility'],
-      ['AI Irrigation Controller','AI','Under negotiation'],
-      ['Biocontrol Fungal Inoculant','Sust. Agriculture','Option — agrochemical firm'],
-      ['Point-of-Care Biomarker Sensor','Health','TTO evaluation']
-    ]
-  },
-  citeByTheme:{
-    title:'Most-Cited Patents by Theme', sub:'Top 10 patents ranked by forward citations', illustrative:true,
-    cols:['Patent title','Theme','Citations'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','Environmental Tech','6'],
-      ['Closed-Loop Mine Water Treatment System','Environmental Tech','5'],
-      ['Diagnostic Biosensor Array','Health','2'],
-      ['Slow-Release Fertilizer Coating','Sust. Agriculture','4'],
-      ['Bio-Based Soil Amendment Compound','Sust. Agriculture','3'],
-      ['Heavy Metal Remediation Process','Environmental Tech','3'],
-      ['Precision Nutrient Delivery System','Sust. Agriculture','2'],
-      ['Low-Energy Desalination Membrane','Environmental Tech','2'],
-      ['Mining Waste Upcycling Method','Environmental Tech','1'],
-      ['Crop Yield Prediction Model','AI','1']
-    ]
-  },
-  partnerTrend:{
-    title:'Top OCP Co-Owned Patents', sub:'Top 5 patents jointly filed with OCP', illustrative:true,
-    cols:['Patent title','Filed','Status'],
-    rows:[
-      ['Phosphate Rock Beneficiation Catalyst','2019','Active'],
-      ['Phosphogypsum Valorization Method','2023','Active'],
-      ['Mine Tailings Recovery Process','2023','Active'],
-      ['Low-Carbon Ammonia Synthesis Catalyst','2025','Filed'],
-      ['Closed-Loop Mine Water Treatment System','2020','Active']
-    ]
-  },
-  spinoffsList:{
-    title:'UM6P Spin-off Companies', sub:'Companies founded on UM6P patents', illustrative:true,
-    cols:['Company','Founded','Based on patent area','Sector'],
-    rows:[
-      ['PhosClean Technologies','2023','Phosphate waste valorization','Environmental tech'],
-      ['AgroSense AI','2022','Precision agriculture AI systems','AgriTech'],
-      ['BioMedX Diagnostics','2024','Biosensor diagnostics platform','Health'],
-      ['AquaPure Solutions','2022','Low-energy desalination membranes','Water tech'],
-      ['NutriSlow Innovations','2021','Slow-release fertilizer coatings','Agrochemicals']
-    ]
-  }
-};
+/* ---- Deep-dive data (from dashboard_data.js) ---- */
+var DEEPDIVE = (D && D.deepdives) ? D.deepdives : {};
 
 function openDive(key){
   var d=DEEPDIVE[key]; if(!d) return;
@@ -978,13 +974,18 @@ function openDive(key){
   badge.className='modal-badge '+(d.illustrative?'sb-illus':'sb-avail');
   badge.innerText=d.illustrative?'Illustrative':'Tracked now';
   document.getElementById('diveHead').innerHTML='<th class="dive-rank">#</th>'+d.cols.map(function(c){return'<th>'+c+'</th>';}).join('');
-  document.getElementById('diveBody').innerHTML=d.rows.map(function(r,i){
-    return'<tr><td class="dive-rank">'+(i+1)+'</td>'+r.map(function(v){return'<td>'+v+'</td>';}).join('')+'</tr>';
-  }).join('');
+  if(!d.rows || !d.rows.length){
+    document.getElementById('diveBody').innerHTML='<tr><td colspan="'+(d.cols.length+1)+'" style="color:var(--text-sub);font-size:.85rem">No records yet — this drill-down awaits TTO/PATSTAT data.</td></tr>';
+  } else {
+    document.getElementById('diveBody').innerHTML=d.rows.map(function(r,i){
+      return'<tr><td class="dive-rank">'+(i+1)+'</td>'+r.map(function(v){return'<td>'+v+'</td>';}).join('')+'</tr>';
+    }).join('');
+  }
   document.getElementById('diveModal').classList.add('open');
 }
 function closeDive(){document.getElementById('diveModal').classList.remove('open');}
 
+applyLiveMetrics();
 renderBench();
 renderTarget();
 placeBenchCtrl('0');

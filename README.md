@@ -6,7 +6,8 @@ A single-file, self-contained HTML dashboard for tracking UM6P's patent portfoli
 
 ## Files
 
-- **um6p_dashboard_v3.html** — the dashboard. Open it directly in any browser (Chrome, Edge, Firefox) — no install or server required.
+- **um6p_dashboard_v3.html** — the dashboard. Open it directly in any browser (Chrome, Edge, Firefox) — no install or server required. Loads **`dashboard_data.js`**, which is generated from Files 3–8.
+- **scripts/build_dashboard_data.ps1** — re-extracts metrics and drill-down tables from the Excel source files into `dashboard_data.js`. Run after updating any source file.
 - **UM6P Dashboard Structure - June 16, 2026.xlsx** — the indicator structure, chart logic, and insight rules the dashboard is built from.
 - **File 3–8** — source data underlying the dashboard's "Tracked now" indicators:
   - File 3: Master Dashboard + Dataset (Morocco-only)

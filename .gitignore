@@ -5,6 +5,9 @@
 !.gitignore
 !README.md
 !um6p_dashboard_v3.html
+!dashboard_data.js
+!scripts/
+!scripts/build_dashboard_data.ps1
 !UM6P Dashboard Structure - June 16, 2026.xlsx
 !File 3 - Master Dashboard + Dataset - UM6P - Morocco-only.xlsx
 !File 4 - UM6P Patents Data - Raw - Morocco-only.xlsx
