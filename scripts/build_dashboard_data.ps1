@@ -82,6 +82,7 @@ foreach ($row in $invRows) {
     if ($id -notmatch '^[A-Z]{3}-\d+') { continue }
     $theme = Cell $row 1
     $title = Cell $row 3
+    $inventor = Cell $row 4
     $lab = Cell $row 5
     $dateStr = Cell $row 8
     $yearRaw = Cell $row 9
@@ -93,7 +94,7 @@ foreach ($row in $invRows) {
     if ($yearRaw -match '(\d{4})') { [void][int]::TryParse($Matches[1], [ref]$year) }
     if ($year -eq 0) { $d = Parse-Date $dateStr; if ($d) { $year = $d.Year } }
     $patents.Add([pscustomobject]@{
-        id=$id; theme=$theme; title=$title; lab=$lab; year=$year; date=$dateStr
+        id=$id; theme=$theme; title=$title; inventor=$inventor; lab=$lab; year=$year; date=$dateStr
         statut=$statut; geo=$geo; partners=$partners; bucket=(Lab-Bucket $lab)
     })
 }
@@ -642,6 +643,130 @@ $radarActuals = @(
     "OCP concentration $ocpShare% of co-filings (HHI $hhi)"
 )
 
+# ============================================================================
+#  DASHBOARD-REVIEW ADDITIONS — Labs/Inventors, theme momentum, pruning,
+#  extension priority, international overlay, peer benchmarks (Jesus CSV)
+# ============================================================================
+function ToNum($x){ $v=0.0; if([double]::TryParse("$x",[Globalization.NumberStyles]::Any,[Globalization.CultureInfo]::InvariantCulture,[ref]$v)){return $v}; return 0.0 }
+$curYear = (Get-Date).Year
+
+# --- Top labs by filings (File 3) + lab selector data ---
+$labCounts = @{}; $labPats = @{}
+foreach ($p in $patents) {
+    $lab = if ($p.lab) { $p.lab.Trim() } else { '(unattributed)' }
+    if (-not $lab) { $lab = '(unattributed)' }
+    if (-not $labCounts.ContainsKey($lab)) { $labCounts[$lab] = 0; $labPats[$lab] = [System.Collections.Generic.List[object]]::new() }
+    $labCounts[$lab]++
+    if ($p.title) { [void]$labPats[$lab].Add($p) }
+}
+$labRank = @($labCounts.GetEnumerator() | ForEach-Object { [pscustomobject]@{ lab=$_.Key; count=$_.Value } } | Sort-Object count -Descending)
+$labTop = @($labRank | Select-Object -First 12)
+$labLabelsOut = @($labTop | ForEach-Object { Esc-Json $_.lab })
+$labValsOut = @($labTop | ForEach-Object { $_.count })
+$labPatientsOut = [ordered]@{}; $labListOut = @()
+foreach ($lr in $labRank) {
+    if ($labPats[$lr.lab].Count -lt 1) { continue }
+    $rows = @($labPats[$lr.lab] | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
+        ,@((Short-Title $_.title), (Yr $_.year), (Theme-Short $_.theme), (Esc-Json $_.statut))
+    })
+    $labPatientsOut[(Esc-Json $lr.lab)] = @($rows)
+    $labListOut += @{ label=(Esc-Json $lr.lab); count=$lr.count }
+}
+
+# --- Top inventors / PIs (split co-inventors on ; and /) ---
+$invCounts = @{}
+foreach ($p in $patents) {
+    if (-not $p.inventor) { continue }
+    $seen = @{}
+    foreach ($nm in ($p.inventor -split '[;/]')) {
+        $nm = ($nm -replace '\s+',' ').Trim()
+        if ($nm.Length -lt 3) { continue }
+        if ($seen.ContainsKey($nm)) { continue }; $seen[$nm] = 1
+        if (-not $invCounts.ContainsKey($nm)) { $invCounts[$nm] = 0 }
+        $invCounts[$nm]++
+    }
+}
+$invTop = @($invCounts.GetEnumerator() | ForEach-Object { [pscustomobject]@{ name=$_.Key; count=$_.Value } } | Sort-Object count -Descending | Select-Object -First 12)
+$invLabelsOut = @($invTop | ForEach-Object { Esc-Json $_.name })
+$invValsOut = @($invTop | ForEach-Object { $_.count })
+
+# --- Theme momentum: filings per theme per year ---
+$themeYearOut = [ordered]@{}
+foreach ($k in $themeKeys) {
+    $arr = @()
+    foreach ($y in $years) { $arr += @($patents | Where-Object { $_.theme -eq $k -and $_.year -eq $y }).Count }
+    $themeYearOut[(Theme-Short $k)] = $arr
+}
+
+# --- Pruning candidates: domestic-only, 10+ years old, still maintained ---
+$pruneList = @($patents | Where-Object {
+    $_.year -gt 0 -and ($curYear - $_.year) -ge 10 -and $_.title -and
+    ($_.geo -eq '' -or $_.geo -match '^Maroc') -and
+    ($_.statut -match 'Maintenu|D.livr|Délivré')
+} | Sort-Object year)
+$pruneCount = $pruneList.Count
+$dives['pruning'] = Dive 'pruning' 'Portfolio Pruning Candidates' 'Domestic-only patents 10+ years old still being maintained — review against renewal cost (File 3)' @('Patent title','Filed','Age','Status') @(
+    @($pruneList | Select-Object -First 10 | ForEach-Object {
+        ,@((Short-Title $_.title), (Yr $_.year), (("" + ($curYear - $_.year)) + ' yrs'), (Esc-Json $_.statut))
+    })
+) $false
+
+# --- International extension priorities: highest-impact patents to take abroad (File 7) ---
+$extPriority = @($citations | Where-Object { $_.citations -ge 1 } | Sort-Object citations -Descending | Select-Object -First 8)
+$dives['extensionPriority'] = Dive 'extensionPriority' 'International Extension Priorities' 'Highest-impact patents by forward citations — prioritise these for foreign filing (File 7)' @('Patent title','Forward citations','Priority date','Suggested action') @(
+    @($extPriority | ForEach-Object {
+        ,@((Short-Title $_.title), "$($_.citations)", $_.prio, 'Evaluate for PCT / EP + US extension')
+    })
+) $false
+
+# --- International-extension overlay: of each year's filings, how many went abroad ---
+$filingsIntlOut = @()
+foreach ($y in $years) {
+    $c = @($patents | Where-Object {
+        $_.year -eq $y -and (($_.statut -match 'PCT|WIPO') -or ($_.geo -and $_.geo -ne '' -and $_.geo -notmatch '^Maroc$'))
+    }).Count
+    $filingsIntlOut += $c
+}
+
+# --- Peer benchmark from Jesus CSV (standardized institutions) ---
+$peerBench = [ordered]@{}
+$peerCsv = Join-Path $base 'morocco_assignees_tech_patent_counts.csv'
+if (Test-Path $peerCsv) {
+    function Peer-Canon([string]$n) {
+        if ($n -match 'MAJESTE|ROI DU MAROC') { return '' }
+        if ($n -match 'MOHAMMED VI POLYTECHNIC|MOHAMED VI POLYTECHNIQUE|MOHAMMED VI POLYTECHNIQUE|MASCIR|MOROCCAN FOUNDATION FOR ADVANCED|MORROCAN FOUNDATION') { return 'UM6P (incl. MAScIR)' }
+        if ($n -match 'INTERNALTIONALE DE RABAT|INTERNATIONALE DE RABAT') { return 'Internationale de Rabat (UIR)' }
+        if ($n -match 'MOHAMMED V UNIVERSITY AGDAL|MOHAMMED V DE RABAT|MOHAMMED V SOUISSI') { return 'Mohammed V - Rabat' }
+        if ($n -match 'HASSAN II (DE CASABLANCA|MOHAMMEDIA)|UH2C') { return 'Hassan II - Casablanca' }
+        return ''
+    }
+    $pAgg = @{}
+    foreach ($r in (Import-Csv $peerCsv)) {
+        $c = Peer-Canon ("" + $r.standardized_name)
+        if (-not $c) { continue }
+        if (-not $pAgg.ContainsKey($c)) { $pAgg[$c] = @{ fp=0.0; orig=0.0; no=0; npl=0.0; nn=0; scope=0.0; ns=0; tri=0 } }
+        $a = $pAgg[$c]
+        $a.fp += (ToNum $r.frac_patents)
+        $a.tri += [int](ToNum $r.n_triadic)
+        if ("$($r.mean_originality)" -ne '') { $a.orig += (ToNum $r.mean_originality); $a.no++ }
+        if ("$($r.mean_npl_cites)" -ne '') { $a.npl += (ToNum $r.mean_npl_cites); $a.nn++ }
+        if ("$($r.mean_scope)" -ne '') { $a.scope += (ToNum $r.mean_scope); $a.ns++ }
+    }
+    foreach ($c in $pAgg.Keys) {
+        $a = $pAgg[$c]
+        $peerBench[$c] = @{
+            patents = [math]::Round($a.fp)
+            originality = $(if ($a.no) { [math]::Round($a.orig / $a.no, 2) } else { $null })
+            sciNpl = $(if ($a.nn) { [math]::Round($a.npl / $a.nn, 2) } else { $null })
+            scope = $(if ($a.ns) { [math]::Round($a.scope / $a.ns, 2) } else { $null })
+            triadic = $a.tri
+        }
+    }
+}
+$um6pKey = 'UM6P (incl. MAScIR)'
+$origReal = $(if ($peerBench[$um6pKey] -and $null -ne $peerBench[$um6pKey].originality) { $peerBench[$um6pKey].originality } else { $null })
+$sciProxReal = $(if ($peerBench[$um6pKey] -and $null -ne $peerBench[$um6pKey].sciNpl) { $peerBench[$um6pKey].sciNpl } else { $null })
+
 $payload = [ordered]@{
     generated = (Get-Date).ToString('yyyy-MM-dd')
     totalPatents = $totalPatents
@@ -690,6 +815,19 @@ $payload = [ordered]@{
     countryList = $countryListOut
     themePatents = $themePatents
     themeList = $themeListOut
+    themeYearLabels = @($years)
+    themeYear = $themeYearOut
+    labLabels = $labLabelsOut
+    labVals = $labValsOut
+    labList = $labListOut
+    labPatents = $labPatientsOut
+    invLabels = $invLabelsOut
+    invVals = $invValsOut
+    filingsIntl = $filingsIntlOut
+    pruneCount = $pruneCount
+    peerBench = $peerBench
+    origReal = $origReal
+    sciProxReal = $sciProxReal
     partnerYears = @($partnerYears)
     partnerOcp = @($partnerYears | ForEach-Object { $partnerOcp[$_] })
     partnerOther = @($partnerYears | ForEach-Object { $partnerOther[$_] })

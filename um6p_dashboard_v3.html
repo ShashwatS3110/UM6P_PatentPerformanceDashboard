@@ -177,7 +177,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="subq">Where is the portfolio strong, and where is it stalling?</div>
     <div class="card lead" style="margin-bottom:24px">
       <span class="statusbadge sb-avail">Tracked metrics</span>
-      <div class="card-t">Leading Indicators vs Benchmarks <i class="ti ti-info-circle info-ic" title="Each spoke is a 0–90 score: 0 = below Morocco benchmark, 90 = at/above top-global-institution benchmark on that dimension. Not a percentage of patents. Hover for actual values."></i></div>
+      <div class="card-t">Leading Indicators vs Benchmarks <i class="ti ti-info-circle info-ic" title="Each spoke is an absolute 0–100 score: 100 = a world-class reference level, 0 = the floor. It is not a percentage of patents. Two spokes are not yet on real data — 'Theme vs Strategy' uses placeholder strategy weights and 'Commercialization' is illustrative — so read those directionally. Hover any spoke for the underlying figure."></i></div>
       <div class="bench-anchor"></div>
       <div class="radarwrap"><canvas id="cRadar"></canvas></div>
       <div class="insight">Filing pace and research theme concentration are clear strengths. International reach, commercialization, and citation impact are the active gaps — where patents need to become global, earning assets.</div>
@@ -209,9 +209,9 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Annual Filing Growth Rate (CAGR) <i class="ti ti-info-circle info-ic" title="Compound annual growth rate of filings over the last 3 years."></i></div>
-        <div class="bigstat" id="statCagr" style="color:var(--green)">+25%/yr</div>
+        <div class="bigstat" id="statCagr" style="color:var(--green)">+14%/yr</div>
         <div class="benchwrap" data-bench="cagr"></div>
-        <div class="insight">+39%/yr over three years — real structural momentum, not a statistical blip. At this pace, filing volume could double by 2027. The bottleneck to watch is whether examination and prosecution capacity scales with the pipeline.</div>
+        <div class="insight">Compound annual growth of filings over the last three years — real structural momentum. The bottleneck to watch is whether examination and prosecution capacity scales with the pipeline.</div>
       </div>
       <div class="card sup">
         <span class="statusbadge sb-illus">Illustrative</span>
@@ -297,7 +297,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-illus">Illustrative</span>
         <div class="card-t">Commercial Success by Research Theme <i class="ti ti-info-circle info-ic" title="Share of each theme's patents that are on a live licensing or commercialization path."></i></div>
         <div class="chartwrap" style="height:140px"><canvas id="cCommByTheme"></canvas></div>
-        <div class="insight">AI and Health show the highest commercialization rates despite small portfolio shares — high-quality niches rather than volume plays. Environmental Tech files the most but converts the least proportionally, suggesting a curation opportunity.</div>
+        <div class="insight">Illustrative placeholder — not computed from TTO licensing data. Awaiting the deal registry before this can be read alongside the tracked charts.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Top licensed patents per theme</div>
       </div>
       <div class="card sup clickable" onclick="openDive('citeByTheme')">
@@ -306,6 +306,16 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="chartwrap" style="height:140px"><canvas id="cCiteByTheme"></canvas></div>
         <div class="insight">Total forward citations by theme across the small Orbit international sample.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Most-cited patents in the sample</div>
+      </div>
+    </div>
+
+    <!-- THEME MOMENTUM -->
+    <div class="vf-section">
+      <div class="vf-label">Where the portfolio is heading — filings by theme over time</div>
+      <div class="card lead">
+        <div class="card-t">Research Theme Momentum <i class="ti ti-info-circle info-ic" title="Patent filings per theme per year (File 3). Unlike the treemap (a current snapshot), this shows the portfolio's direction of travel — which themes are accelerating and which are flat."></i></div>
+        <div class="chartwrap" style="height:260px"><canvas id="cThemeMomentum"></canvas></div>
+        <div class="insight" id="momentumInsight">Filings per theme per year — the shape shows whether UM6P's patenting is shifting between research areas over time.</div>
       </div>
     </div>
   </div>
@@ -330,7 +340,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="card-t">International Filing Rate <i class="ti ti-info-circle info-ic" title="Share of patent applications extended beyond Morocco through the PCT system or direct foreign filing."></i></div>
         <div class="bigstat" id="statPctIntl" style="color:var(--red)">8%</div>
         <div class="benchwrap" data-bench="goingIntl"></div>
-        <div class="insight">Only 6% of UM6P's applications go international — compared to 77% for Moroccan-invented patents overall. The 94% that stay domestic cannot be enforced in any foreign market. Establishing a default PCT policy for technologies with export potential would move this metric fastest.</div>
+        <div class="insight">Only a small share of UM6P's applications are filed beyond Morocco. The rest stay domestic and cannot be enforced in any foreign market. A default PCT policy for technologies with export potential would move this metric fastest.</div>
       </div>
       <div class="card sup clickable" onclick="openDive('triadicList')">
         <span class="statusbadge sb-avail">Tracked now</span>
@@ -345,8 +355,15 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="card-t">Patent Portfolio Survival Rate <i class="ti ti-info-circle info-ic" title="Share of patents in the MAScIR renewal registry (File 5) still paying annuities. Does not cover newer UM6P TTO patents absent from that file."></i></div>
         <div class="bigstat" id="statRenewal" style="color:var(--green)">~97%</div>
         <div class="benchwrap" data-bench="keptAlive"></div>
-        <div class="insight">~96% of granted patents are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
+        <div class="insight">Nearly all patents in the MAScIR renewal registry are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 longest-active patents</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('extensionPriority')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">International Extension Priorities <i class="ti ti-info-circle info-ic" title="The portfolio's highest-impact patents (by forward citations, File 7) — the shortlist most worth the cost of foreign filing. Turns the coverage gap from a problem into a prioritised action list."></i></div>
+        <div class="bigstat" style="color:var(--orange)">Shortlist</div>
+        <div class="insight">Rather than filing everything abroad, concentrate budget on the few patents already showing technological impact. These are the candidates where international protection is most likely to pay back.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Top patents to take abroad</div>
       </div>
     </div>
   </div>
@@ -364,19 +381,18 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         </div>
         <div class="bench-anchor"></div>
         <div class="benchwrap" data-bench="fwdCit"></div>
-        <div class="insight">0.8 citations per patent is below the peer average of ~1.5, but the portfolio's median patent is less than four years old — citation accumulation takes 5–7 years to mature. Impact is already visible in Materials science and Environmental tech, which together account for the majority of cited patents. The real test comes in 2027–2028 as the 2021–2023 cohort ages.</div>
+        <div class="insight">Forward citations are still low, but the portfolio's median patent is less than four years old — citation accumulation takes 5–7 years to mature. The real test comes in 2027–2028 as the 2021–2023 cohort ages.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 10 most-cited patents</div>
       </div>
     </div>
     <div class="supLabel">Supporting</div>
     <div class="supGrid">
-      <div class="card sup clickable" onclick="openDive('origIndex')">
-        <span class="statusbadge sb-illus">Illustrative</span>
-        <div class="card-t">Originality Index <i class="ti ti-info-circle info-ic" title="Measures how broadly a patent draws on diverse technology fields in its cited references. A score near 1 means citations span many distinct areas — a proxy for cross-domain novelty."></i></div>
-        <div class="bigstat">~0.32</div>
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Originality Index <i class="ti ti-info-circle info-ic" title="OECD originality indicator: how broadly a patent draws on diverse technology fields in its cited references (0–1; higher = more cross-domain). From the Moroccan patents quality dataset, UM6P incl. MAScIR, international subset only — a small sample, so directional."></i></div>
+        <div class="bigstat" id="statOrig">~0.65</div>
         <div class="benchwrap" data-target="origIndex"></div>
-        <div class="insight">An Originality Index of 0.32 (on a 0–1 scale) indicates patents largely draw on closely related prior art — incremental inventions within established fields rather than cross-domain breakthroughs. The target of 0.50 reflects the profile of peer institutions with commercially impactful portfolios. Requires PATSTAT to compute from real citation data.</div>
-        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 most original patents</div>
+        <div class="insight" id="origInsight">Real value from the Moroccan patents quality dataset. Among Moroccan universities with data, UM6P sits behind UIR but ahead of the field — a genuine strength, though measured on a small international sample.</div>
       </div>
       <div class="card sup clickable" onclick="openDive('techBreadth')">
         <span class="statusbadge sb-avail">Tracked now</span>
@@ -387,11 +403,11 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 broadest patents by scope</div>
       </div>
       <div class="card sup">
-        <span class="statusbadge sb-illus">Illustrative</span>
-        <div class="card-t">Science Proximity Index <i class="ti ti-info-circle info-ic" title="Average number of non-patent (scientific literature) references per patent — a measure of how closely inventions are grounded in academic research."></i></div>
-        <div class="bigstat">~1.6 refs / patent</div>
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Science Proximity (NPL citations) <i class="ti ti-info-circle info-ic" title="OECD measure: average non-patent-literature (scientific) citations per patent — how directly inventions cite academic science. From the Moroccan patents quality dataset (international subset). Near-zero means patents rarely cite scientific papers directly."></i></div>
+        <div class="bigstat" id="statSciProx">~0.02</div>
         <div class="benchwrap" data-target="sciProx"></div>
-        <div class="insight">~1.6 scientific references per patent sits below the target of 2.5 for research-intensive universities. The figure is not zero — science is reaching IP — but the gap suggests that many inventions are engineering adaptations of known science rather than direct translations of UM6P's own research frontier. Requires PATSTAT to compute precisely.</div>
+        <div class="insight" id="sciInsight">Real value from the quality dataset: UM6P patents cite almost no scientific literature directly — they read as engineering adaptations of known science rather than direct translations of the research frontier. A strong lever: encourage inventors to cite the underlying papers, which also strengthens validity.</div>
       </div>
     </div>
   </div>
@@ -449,6 +465,21 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="insight">~$620 per active patent per year — well below the $2,000 target. The metric is most useful not as an absolute number but broken down by lab and research theme: surface the patents generating $0 that are still incurring renewal fees, and those are the divestiture or out-licensing candidates.</div>
       </div>
     </div>
+
+    <!-- PORTFOLIO PRUNING (real, tracked) -->
+    <div class="vf-section">
+      <div class="vf-label">The other side of value — what is the portfolio costing to keep?</div>
+      <div class="card lead clickable" onclick="openDive('pruning')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Portfolio Pruning Candidates <i class="ti ti-info-circle info-ic" title="Patents that are 10+ years old, protected only in Morocco, and still being maintained (File 3). Older patents incur rising annuity fees; domestic-only ones cannot be enforced abroad. These are the first candidates to review for letting lapse — freeing budget for international extension of higher-value patents."></i></div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin:10px 0 4px">
+          <div style="font-size:2.6rem;font-weight:800;color:var(--orange);letter-spacing:-.02em" id="pruneStat">—</div>
+          <div style="font-size:.88rem;color:var(--text-sub);line-height:1.4">old, domestic-only patents<br>still being maintained</div>
+        </div>
+        <div class="insight" id="pruneInsight">Commercialization is one half of portfolio value; maintenance cost is the other. Each of these patents is 10+ years old, enforceable only in Morocco, and still paying annuities — review them against their renewal cost and free that budget to extend higher-value patents abroad.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 10 oldest pruning candidates</div>
+      </div>
+    </div>
   </div>
 
   <!-- TAB 6: INDUSTRIAL PARTNERSHIP & VENTURES -->
@@ -457,13 +488,13 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="leadWrap">
       <div class="card lead clickable" onclick="openDive('partnerTrend')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Industry Concentration Index <i class="ti ti-info-circle info-ic" title="Herfindahl-Hirschman Index (HHI) of co-filing partners: 0 = perfectly diversified, 1 = a single partner. Chart shows annual co-filings by partner type. Computed from File 3 partner fields."></i></div>
+        <div class="card-t">Industry Concentration Index <i class="ti ti-info-circle info-ic" title="Herfindahl-Hirschman Index (HHI) of co-filing partners: 0 = perfectly diversified, 1 = a single partner. Chart shows annual co-filings by partner type. Computed from File 3 partner fields. Caveat: filings tagged with an OCP framework reference are counted as OCP-linked, which may over-state true OCP co-ownership."></i></div>
         <div class="chartwrap" style="height:200px"><canvas id="cPartnerTrend"></canvas></div>
         <div style="display:flex;gap:24px;margin-top:12px;align-items:baseline">
           <div><div id="statHhi" style="font-size:2rem;font-weight:800;color:var(--orange);letter-spacing:-.01em">0.58</div><div style="font-size:.72rem;color:var(--text-sub)">concentration index (HHI)</div></div>
           <div style="font-size:.8rem;color:var(--text-sub);line-height:1.4">An HHI above 0.5 indicates a <b>highly concentrated</b> partnership base — most industry co-filings run through one partner.</div>
         </div>
-        <div class="insight">Co-invented filings have grown year-on-year, but OCP accounts for 69% of all co-owned patents — an HHI of 0.52 signals a highly concentrated partnership structure. Solo UM6P filings are growing fastest (now ~20/yr), which is positive, but the OCP dependency means the portfolio's commercial routes remain tied to one partner's R&D budget and strategic priorities. Adding two or three new industrial co-inventors by 2027 would materially reduce this risk.</div>
+        <div class="insight">Industry co-filing is highly concentrated in a single partner. That dependency means the portfolio's commercial routes remain tied to one partner's R&D budget and strategic priorities. Adding two or three new industrial co-inventors would materially reduce this risk.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Top 5 OCP co-owned patents</div>
       </div>
     </div>
@@ -484,6 +515,40 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="bigstat">~9%</div>
         <div class="benchwrap" data-target="startups"></div>
         <div class="insight">~9% of patents finding their way to startups against a target of 15% — the licensing pathway currently favours established partners (primarily OCP) over new venture formation. This is partly a market structure issue: Morocco has fewer early-stage investors than startup-rich ecosystems. The TTO can partially compensate by actively seeking international deep-tech investors for the most promising patents.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: LABS & INVENTORS -->
+  <div class="view" id="tab7">
+    <div class="subq">Which labs and inventors are generating UM6P's patent portfolio?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openSelect('lab')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patents by Lab / Hub <i class="ti ti-info-circle info-ic" title="Patent count per originating lab or hub (File 3 'Hub / Laboratoire'). MAScIR and the OCP/CERPHOS legacy centres carry the historical portfolio; newer UM6P labs are growing."></i></div>
+        <div class="chartwrap" style="height:300px"><canvas id="cLabs"></canvas></div>
+        <div class="insight">Patent generation is concentrated in a handful of labs. Knowing where IP originates is the basis for allocating TTO support, inventor training, and commercialization effort.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Pick a lab to see its latest 10 patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Most Active Inventors / PIs <i class="ti ti-info-circle info-ic" title="Patent count per named inventor / principal investigator (File 3). A patent is credited to each of its listed inventors. Co-inventor strings separated by commas may appear as a single entry — a data-cleaning caveat."></i></div>
+        <div class="chartwrap" style="height:300px"><canvas id="cInventors"></canvas></div>
+        <div class="insight">A small group of prolific inventors drives a large share of filings — typical of a young portfolio. Spreading inventive activity across more PIs reduces key-person risk and signals a broadening research base.</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Why this matters <i class="ti ti-info-circle info-ic" title="How decision-makers can use the lab and inventor views."></i></div>
+        <div class="insight" style="border-top:none;margin-top:0;padding-top:0">
+          <b>For strategy:</b> the lab and inventor views answer <i>where</i> IP is being created — the input side of every other metric in this dashboard.<br><br>
+          • <b>Resource allocation:</b> direct TTO drafting and prosecution budget toward the most productive labs.<br>
+          • <b>Risk:</b> heavy concentration in one lab or a few inventors is a key-person dependency.<br>
+          • <b>Equity:</b> labs filing little despite strong research may need inventor-awareness support.<br>
+          • Click any lab on the left to inspect its actual patents.
+        </div>
       </div>
     </div>
   </div>
@@ -539,6 +604,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 var TABS = [
   {id:'0', n:'Overview',                    icon:'ti-layout-dashboard'},
   {id:'1', n:'Scale & Momentum',            icon:'ti-trending-up'},
+  {id:'7', n:'Labs & Inventors',            icon:'ti-flask'},
   {id:'2', n:'Research Themes',             icon:'ti-target'},
   {id:'3', n:'Global Coverage',             icon:'ti-world'},
   {id:'4', n:'Portfolio Quality',           icon:'ti-award'},
@@ -651,14 +717,14 @@ function applyLiveMetrics(){
   var solo2025=(D.partnerSolo&&D.partnerSolo.length)?D.partnerSolo[D.partnerSolo.length-1]:0;
   var tto2025=(D.filingsTto&&D.filingsTto.length)?D.filingsTto[D.filingsTto.length-1]:0;
   var radarSc=D.radarScores||[];
-  var weakIdx=0, strongIdx=0;
-  if(radarSc.length){
-    radarSc.forEach(function(s,i){ if(s<radarSc[weakIdx]) weakIdx=i; if(s>radarSc[strongIdx]) strongIdx=i; });
-  }
   var radarDims=['filing growth','theme–strategy fit','international reach','citation impact','commercialization','partner diversification'];
+  // Strongest/weakest are computed only over the REAL spokes — indices 1 (placeholder strategy weights)
+  // and 4 (illustrative commercialization) are excluded so the headline isn't built on non-tracked data.
+  var realIdx=[0,2,3,5], weakIdx=realIdx[0], strongIdx=realIdx[0];
+  realIdx.forEach(function(i){ if((radarSc[i]||0)<(radarSc[weakIdx]||0)) weakIdx=i; if((radarSc[i]||0)>(radarSc[strongIdx]||0)) strongIdx=i; });
 
   setSel('#tab0 .card.lead .insight',
-    'Each spoke is scored 0–100, where 100 = a world-class reference and 0 = the floor — so the shape shows absolute standing, not just rank. Strongest: '+radarDims[strongIdx]+' ('+(radarSc[strongIdx]||'—')+'/100). Weakest: '+radarDims[weakIdx]+' ('+(radarSc[weakIdx]||'—')+'/100), the clearest area to invest in next. Hover any spoke for the underlying figure.');
+    'Each spoke is scored 0–100, where 100 = a world-class reference and 0 = the floor — so the shape shows absolute standing, not just rank. Among the tracked dimensions, strongest is '+radarDims[strongIdx]+' ('+(radarSc[strongIdx]||'—')+'/100) and weakest is '+radarDims[weakIdx]+' ('+(radarSc[weakIdx]||'—')+'/100) — the clearest area to invest in next. (Theme-fit and commercialization spokes are not yet on real data.) Hover any spoke for the underlying figure.');
 
   setSel('#tab1 .card.lead .insight',
     D.filings2025+' filings in 2025 — the record year in File 3'+(peakYear!==2025?' (prior peak '+peakCount+' in '+peakYear+')':'')+'. '+D.filings2026+' filed so far in 2026 (the year is still in progress, so it is not yet comparable). Chart covers '+D.filingsDated+' applications with a filing year; '+D.filingsUndated+' legacy rows lack a date in File 3.');
@@ -711,7 +777,7 @@ function applyLiveMetrics(){
     '~'+D.avgIpc+' distinct IPC classes per patent family on average (File 6). The broadest families span 3–5 classes — see the technology-scope deep dive for the patents and their themes.');
 
   setSel('#tab6 .card.lead .insight',
-    'Industry co-filing is highly concentrated (HHI '+D.hhi+', where above 0.5 = concentrated). Of '+solo2025+' 2025 filings most carry no external co-filer, and among those that do, one partner dominates. Broadening to two or three additional industry co-inventors would materially de-risk the portfolio’s commercial routes.');
+    'Industry co-filing is highly concentrated (HHI '+D.hhi+', where above 0.5 = concentrated): among filings with a named industry partner, one partner (OCP) dominates. Note this counts OCP framework-reference tags as OCP-linked, so it may over-state true co-ownership. Broadening to two or three additional industry co-inventors would materially de-risk the portfolio’s commercial routes.');
 
   var tab1stats=document.querySelectorAll('#tab1 .supGrid .bigstat');
   if(tab1stats.length>=2){ tab1stats[0].textContent='+'+D.cagr+'%/yr'; tab1stats[1].textContent='~'+D.avgGrantLag+' years'; }
@@ -726,6 +792,21 @@ function applyLiveMetrics(){
   if(tab4stats.length>=1){ tab4stats[0].textContent=D.avgCites; }
   var tab4b=document.querySelector('#tab4 .card.sup:nth-child(2) .bigstat');
   if(tab4b) tab4b.textContent='~'+D.avgIpc+' classes';
+
+  /* ---- New (review additions): real originality/sci-prox, peer context, pruning ---- */
+  if(D.origReal!=null){
+    if(typeof TARGET!=='undefined' && TARGET.origIndex) TARGET.origIndex.um=D.origReal;
+    var so=document.getElementById('statOrig'); if(so) so.textContent=Number(D.origReal).toFixed(2);
+  }
+  if(D.sciProxReal!=null){
+    if(typeof TARGET!=='undefined' && TARGET.sciProx) TARGET.sciProx.um=D.sciProxReal;
+    var ssx=document.getElementById('statSciProx'); if(ssx) ssx.textContent='~'+Number(D.sciProxReal).toFixed(2);
+  }
+  var pb=D.peerBench||{}, umP=pb['UM6P (incl. MAScIR)'], uirP=pb['Internationale de Rabat (UIR)'];
+  if(umP && umP.originality!=null){
+    setSel('#origInsight','UM6P (incl. MAScIR) scores '+umP.originality+' on the OECD originality index — above the 0.50 reference level'+(uirP&&uirP.originality!=null?', though Université Internationale de Rabat leads Moroccan peers at '+uirP.originality:'')+'. Measured on the international subset only (small sample), so read it as directional — but a genuine strength to build on.');
+  }
+  if(D.pruneCount!=null){ var ps=document.getElementById('pruneStat'); if(ps) ps.textContent='~'+D.pruneCount; }
 }
 
 buildExecTiles();
@@ -828,6 +909,13 @@ var filingLabels = D ? D.filingsYears.map(String) : ['2015','2016','2017','2018'
 var filingMascir = D ? D.filingsMascir : [18,12,7,3,1,2,4,5,5,5,5];
 var filingTto = D ? D.filingsTto : [10,8,6,2,1,1,4,7,9,11,17];
 var filingOther = D ? D.filingsOther : [3,2,1,1,1,1,1,1,2,2,3];
+var filingIntl = D && D.filingsIntl ? D.filingsIntl : filingLabels.map(function(){return 0;});
+var labLabels = D && D.labLabels ? D.labLabels : ['MAScIR'];
+var labVals = D && D.labVals ? D.labVals : [193];
+var invLabels = D && D.invLabels ? D.invLabels : [];
+var invVals = D && D.invVals ? D.invVals : [];
+var themeYearLabels = D && D.themeYearLabels ? D.themeYearLabels.map(String) : filingLabels;
+var themeYearData = D && D.themeYear ? D.themeYear : {};
 var treemapTree = D ? D.treemap : [
   {label:'Environmental Tech & Digital Mining',value:45},
   {label:'Sustainable Agriculture',value:22},
@@ -889,13 +977,15 @@ new Chart(document.getElementById('cFilings'),{
   data:{
     labels:filingLabels,
     datasets:[
-      {label:'MAScIR',    data:filingMascir,  backgroundColor:'#A83218'},
-      {label:'UM6P TTO',  data:filingTto, backgroundColor:'#D7492A'},
-      {label:'OCP/CERPHOS',data:filingOther,    backgroundColor:'#F5C4B8'}
+      {label:'MAScIR',    data:filingMascir,  backgroundColor:'#A83218',stack:'inst'},
+      {label:'UM6P TTO',  data:filingTto, backgroundColor:'#D7492A',stack:'inst'},
+      {label:'OCP/CERPHOS',data:filingOther,    backgroundColor:'#F5C4B8',stack:'inst'},
+      {type:'line',label:'of which filed abroad',data:filingIntl,borderColor:'#2D6A4F',backgroundColor:'#2D6A4F',borderWidth:2,pointRadius:3,pointBackgroundColor:'#2D6A4F',tension:.3,fill:false}
     ]
   },
-  options:{...co, scales:{x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}},
-    plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:12}}}}
+  options:{...co, scales:{x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true,beginAtZero:true}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:12}},
+      tooltip:{callbacks:{afterbody:function(items){var i=items[0].dataIndex;var ab=filingIntl[i]||0;return ab>0?'International extension this year: '+ab:'';}}}}}
 });
 
 /* Research Theme Treemap (Tab 2) */
@@ -989,6 +1079,47 @@ new Chart(document.getElementById('cPartnerTrend'),{
     }}
 });
 
+/* Top Labs by filings — horizontal bar (Labs & Inventors tab) */
+if(document.getElementById('cLabs')){
+  var labBg=labVals.map(function(v,i){return i===0?'#A83218':(i<3?'#D7492A':'#E8865F');});
+  new Chart(document.getElementById('cLabs'),{
+    type:'bar',
+    data:{labels:labLabels,datasets:[{data:labVals,backgroundColor:labBg,borderWidth:0}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x+' patents';}}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},border:{display:false}},
+        y:{grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:11,weight:'600'}},border:{display:false}}}}
+  });
+}
+
+/* Most active inventors / PIs — horizontal bar (Labs & Inventors tab) */
+if(document.getElementById('cInventors')){
+  new Chart(document.getElementById('cInventors'),{
+    type:'bar',
+    data:{labels:invLabels,datasets:[{data:invVals,backgroundColor:'#E86B4F',borderWidth:0}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x+' patents (named inventor)';}}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},stepSize:2},border:{display:false}},
+        y:{grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:10,weight:'600'}},border:{display:false}}}}
+  });
+}
+
+/* Theme momentum — stacked area over time (Research Themes tab) */
+if(document.getElementById('cThemeMomentum')){
+  var momColors={'Environmental Tech':'#D7492A','Sustainable Agriculture':'#E8865F','Mineral Processing':'#B45309','Circular Chemistry':'#A83218','Energy & Storage':'#2D6A4F'};
+  var momSets=Object.keys(themeYearData).map(function(k){
+    return {label:k,data:themeYearData[k],backgroundColor:(momColors[k]||'#B8B4AC'),borderColor:(momColors[k]||'#B8B4AC'),fill:true,tension:.3,pointRadius:0,borderWidth:1};
+  });
+  new Chart(document.getElementById('cThemeMomentum'),{
+    type:'line',
+    data:{labels:themeYearLabels,datasets:momSets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:10}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},
+        y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},title:{display:true,text:'Filings per year',font:{family:'Montserrat',size:10},color:'#9E9E9E'}}}}
+  });
+}
+
 /* ---- Deep-dive data (from dashboard_data.js) ---- */
 var DEEPDIVE = (D && D.deepdives) ? D.deepdives : {};
 
@@ -1018,7 +1149,10 @@ var SELCFG = {
            list:(D&&D.themeList)||[], data:(D&&D.themePatents)||{}},
   country:{title:'Browse Patents by Filing Country', sub:'Latest 10 applications filed in the selected country/route (File 3)',
            label:'Country', cols:['Patent title','Year','Theme'],
-           list:(D&&D.countryList)||[], data:(D&&D.countryPatents)||{}}
+           list:(D&&D.countryList)||[], data:(D&&D.countryPatents)||{}},
+  lab:    {title:'Browse Patents by Lab', sub:'Latest 10 patents from the selected lab / hub (File 3)',
+           label:'Lab', cols:['Patent title','Year','Theme','Status'],
+           list:(D&&D.labList)||[], data:(D&&D.labPatents)||{}}
 };
 var selCurrent=null;
 function openSelect(kind){
