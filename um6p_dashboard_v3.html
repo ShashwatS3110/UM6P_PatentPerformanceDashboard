@@ -673,7 +673,7 @@ function applyLiveMetrics(){
   setSel('#funnelGranted', D.grantedCount);
   setSel('#funnelConvGrant', '↓ ~'+D.grantRate+'% granted');
   setSel('#tab1 .vf-section .insight',
-    'Tracked stages: '+D.totalPatents+' applications filed and '+D.grantedCount+' granted/maintained ('+D.grantRate+'% grant rate from File 3). Upstream disclosure and downstream licensing stages remain illustrative until TTO pipeline data is linked.');
+    'The '+D.totalPatents+' is total patents FILED — the full portfolio of applications, not grants. Of those, '+D.grantedCount+' (~'+D.grantRate+'%) are granted or actively maintained; the rest are still pending at OMPIC, abandoned/rejected, or carry no recorded status in File 3 (about 1 in 6 records). Because some of those unrecorded ones may in fact be granted, the true grant rate is likely a little higher than '+D.grantRate+'% — treat it as a conservative floor. Upstream disclosure and downstream licensing stages remain illustrative until TTO pipeline data is linked.');
 
   setSel('#tab2 .card.lead .insight',
     tt.label+' leads at '+tt.value+'% of the portfolio (File 3 theme tags). Five-theme shares are rounded to sum to 100%.');
