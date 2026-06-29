@@ -16,6 +16,13 @@ function Short-Title([string]$t, [int]$max = 72) {
 # Format a filing year: blank/0 shown as an em dash (some File 3 rows have no recorded year)
 function Yr([int]$y) { if ($y -gt 0) { "$y" } else { [string][char]0x2014 } }
 
+# Inventor / lab cell: trimmed, em dash when blank
+function Cell-Or-Dash([string]$s, [int]$max = 38) {
+    $t = Short-Title $s $max
+    if (-not $t) { return [string][char]0x2014 }
+    return $t
+}
+
 function Theme-Short([string]$t) {
     if ($t -match 'Environmental') { return 'Environmental Tech' }
     if ($t -match 'Green Agriculture') { return 'Sustainable Agriculture' }
@@ -525,13 +532,13 @@ $dives['partnerTrend'] = Dive 'partnerTrend' 'Top OCP-Linked Patents' 'Co-owned 
     })
 ) $false
 
-# ---- Theme selector deep-dive (#7): latest 10 TITLED patents per theme ----
+# ---- Theme selector deep-dive: latest 10 TITLED patents per theme (with researcher + centre) ----
 $themePatents = [ordered]@{}
 $themeListOut = @()
 foreach ($k in $themeKeys) {
     $label = Theme-Short $k
     $rows = @($patents | Where-Object { $_.theme -eq $k -and $_.title } | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
-        ,@((Short-Title $_.title), (Yr $_.year), (Esc-Json $_.statut))
+        ,@((Short-Title $_.title), (Yr $_.year), (Cell-Or-Dash $_.inventor), (Cell-Or-Dash $_.lab 20), (Esc-Json $_.statut))
     })
     $themePatents[$label] = @($rows)
     $themeListOut += @{ label=$label; count=$themeMap[$k] }
@@ -667,14 +674,14 @@ $labPatientsOut = [ordered]@{}; $labListOut = @()
 foreach ($lr in $labRank) {
     if ($labPats[$lr.lab].Count -lt 1) { continue }
     $rows = @($labPats[$lr.lab] | Sort-Object year, date -Descending | Select-Object -First 10 | ForEach-Object {
-        ,@((Short-Title $_.title), (Yr $_.year), (Theme-Short $_.theme), (Esc-Json $_.statut))
+        ,@((Short-Title $_.title), (Yr $_.year), (Cell-Or-Dash $_.inventor), (Theme-Short $_.theme))
     })
     $labPatientsOut[(Esc-Json $lr.lab)] = @($rows)
     $labListOut += @{ label=(Esc-Json $lr.lab); count=$lr.count }
 }
 
-# --- Top inventors / PIs (split co-inventors on ; and /) ---
-$invCounts = @{}
+# --- Top inventors / PIs with their main lab + domain (split co-inventors on ; and /) ---
+$invAgg = @{}
 foreach ($p in $patents) {
     if (-not $p.inventor) { continue }
     $seen = @{}
@@ -682,13 +689,26 @@ foreach ($p in $patents) {
         $nm = ($nm -replace '\s+',' ').Trim()
         if ($nm.Length -lt 3) { continue }
         if ($seen.ContainsKey($nm)) { continue }; $seen[$nm] = 1
-        if (-not $invCounts.ContainsKey($nm)) { $invCounts[$nm] = 0 }
-        $invCounts[$nm]++
+        if (-not $invAgg.ContainsKey($nm)) { $invAgg[$nm] = @{ count=0; labs=@{}; themes=@{} } }
+        $a = $invAgg[$nm]; $a.count++
+        $lab = if ($p.lab) { $p.lab.Trim() } else { '' }; if (-not $lab) { $lab = [char]0x2014 }
+        $a.labs[$lab] = ($a.labs[$lab] -as [int]) + 1
+        $th = Theme-Short $p.theme
+        $a.themes[$th] = ($a.themes[$th] -as [int]) + 1
     }
 }
-$invTop = @($invCounts.GetEnumerator() | ForEach-Object { [pscustomobject]@{ name=$_.Key; count=$_.Value } } | Sort-Object count -Descending | Select-Object -First 12)
+function Top-Key($h) { if (-not $h.Count) { return [char]0x2014 }; ($h.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1).Key }
+$invTop = @($invAgg.GetEnumerator() | ForEach-Object {
+    [pscustomobject]@{ name=$_.Key; count=$_.Value.count; lab=(Top-Key $_.Value.labs); theme=(Top-Key $_.Value.themes) }
+} | Sort-Object count -Descending | Select-Object -First 12)
 $invLabelsOut = @($invTop | ForEach-Object { Esc-Json $_.name })
-$invValsOut = @($invTop | ForEach-Object { $_.count })
+$invLabsOut   = @($invTop | ForEach-Object { Esc-Json $_.lab })
+$invValsOut   = @($invTop | ForEach-Object { $_.count })
+$dives['researchers'] = Dive 'researchers' 'Top Researchers by Patent Output' 'Inventors credited on the most patents, with their main lab and domain' @('Researcher','Patents','Lab / Hub','Main domain') @(
+    @($invTop | Select-Object -First 10 | ForEach-Object {
+        ,@((Esc-Json $_.name), "$($_.count)", (Esc-Json $_.lab), (Esc-Json $_.theme))
+    })
+) $false
 
 # --- Theme momentum: filings per theme per year ---
 $themeYearOut = [ordered]@{}
@@ -862,6 +882,7 @@ $payload = [ordered]@{
     labList = $labListOut
     labPatents = $labPatientsOut
     invLabels = $invLabelsOut
+    invLabs = $invLabsOut
     invVals = $invValsOut
     filingsIntl = $filingsIntlOut
     pruneCount = $pruneCount
