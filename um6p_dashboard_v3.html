@@ -354,6 +354,12 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <div class="insight">Nearly all patents in the MAScIR renewal registry are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 longest-active patents</div>
       </div>
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Average Remaining Patent Life <i class="ti ti-info-circle info-ic" title="Average years left before expiry (patents expire 20 years after filing) across granted/active patents with a known filing date. Shorter remaining life = sooner the protection — and any licensing value — runs out."></i></div>
+        <div class="bigstat" id="statRemLife">~9.8 yrs</div>
+        <div class="insight" id="remLifeInsight">Average years of protection left on the active portfolio.</div>
+      </div>
     </div>
   </div>
 
@@ -491,6 +497,12 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="supLabel">Supporting</div>
     <div class="bench-anchor"></div>
     <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Industry–Academia Collaboration <i class="ti ti-info-circle info-ic" title="Every patent classified by co-filer: jointly filed with an industry partner (OCP or another company), with another university, or filed independently by UM6P with no external co-filer."></i></div>
+        <div class="chartwrap" style="height:150px"><canvas id="cCollabMix"></canvas></div>
+        <div class="insight" id="collabInsight">How UM6P collaborates through IP.</div>
+      </div>
       <div class="card sup clickable" onclick="openDive('spinoffsList')">
         <span class="statusbadge sb-illus">Illustrative</span>
         <div class="card-t">Spin-off Companies Created <i class="ti ti-info-circle info-ic" title="New companies founded each year based on UM6P patents."></i></div>
@@ -514,9 +526,9 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="leadWrap">
       <div class="card lead clickable" onclick="openSelect('lab')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Patents by Lab / Hub <i class="ti ti-info-circle info-ic" title="Patent count per originating lab or hub. MAScIR and the OCP/CERPHOS legacy centres carry the historical portfolio; newer UM6P labs are growing."></i></div>
+        <div class="card-t">Patents by Lab / Hub, by Status <i class="ti ti-info-circle info-ic" title="Patents per originating lab or hub, broken down by legal status (granted/active, pending, lapsed/rejected, status not recorded). MAScIR and the OCP/CERPHOS legacy centres hold the historical portfolio; newer UM6P labs are mostly still pending."></i></div>
         <div class="chartwrap" style="height:300px"><canvas id="cLabs"></canvas></div>
-        <div class="insight">Patent generation is concentrated in a handful of labs. Knowing where IP originates is the basis for allocating TTO support, inventor training, and commercialization effort.</div>
+        <div class="insight">The legacy MAScIR portfolio is largely granted, while the newer UM6P labs are still mostly pending — a sign the in-house pipeline hasn't yet converted to grants. A large "status not recorded" block in any lab is a data-hygiene action, not necessarily a weak portfolio.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Pick a lab to see its latest 10 patents</div>
       </div>
     </div>
@@ -793,6 +805,19 @@ function applyLiveMetrics(){
     var sts=document.getElementById('statSciProx'); if(sts) sts.textContent=Number(q.npl).toFixed(2);
   }
   if(D.pruneCount!=null){ var ps=document.getElementById('pruneStat'); if(ps) ps.textContent='~'+D.pruneCount; }
+
+  /* ---- Average remaining patent life (Global Coverage) ---- */
+  if(D.avgRemainingLife!=null){
+    var srl=document.getElementById('statRemLife'); if(srl) srl.textContent='~'+D.avgRemainingLife+' yrs';
+    setSel('#remLifeInsight','The active portfolio has on average ~'+D.avgRemainingLife+' years of protection left, and '+(D.expiringSoon||0)+' patents expire within 5 years. Those are the ones to commercialise or deliberately let lapse now — protection (and any licensing leverage) ends when the patent does.');
+  }
+
+  /* ---- Industry–academia collaboration mix (Partnership tab) ---- */
+  if(D.collabIndependent!=null){
+    var ct=(D.collabIndependent||0)+(D.collabIndustry||0)+(D.collabAcademic||0);
+    var pInd=ct?Math.round(100*D.collabIndependent/ct):0, pIndu=ct?Math.round(100*D.collabIndustry/ct):0;
+    setSel('#collabInsight','Most patents ('+pInd+'%) are filed independently by UM6P, '+pIndu+'% with an industry partner, and only '+D.collabAcademic+' with another university. Co-filing with industry is the route most likely to lead to commercialization — there is clear room to convert more solo filings into industry collaborations.');
+  }
 }
 
 buildExecTiles();
@@ -1089,16 +1114,31 @@ new Chart(document.getElementById('cPartnerTrend'),{
     }}
 });
 
-/* Top Labs by filings — horizontal bar (Labs & Inventors tab) */
+/* Industry–Academia collaboration mix — doughnut (Tab 6) */
+if(document.getElementById('cCollabMix') && D){
+  new Chart(document.getElementById('cCollabMix'),{
+    type:'doughnut',
+    data:{labels:['Filed independently','With an industry partner','With another university'],
+      datasets:[{data:[D.collabIndependent||0,D.collabIndustry||0,D.collabAcademic||0],
+        backgroundColor:['#EDEAE4','#D7492A','#2D6A4F'],borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'right',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){var t=ctx.dataset.data.reduce(function(a,b){return a+b;},0);return ctx.label+': '+ctx.parsed+' ('+Math.round(100*ctx.parsed/t)+'%)';}}}}}
+  });
+}
+
+/* Top Labs by filings — horizontal bar, stacked by legal status (Labs & Inventors tab) */
 if(document.getElementById('cLabs')){
-  var labBg=labVals.map(function(v,i){return i===0?'#A83218':(i<3?'#D7492A':'#E8865F');});
+  var labStatus = D && D.labStatus ? D.labStatus : [{label:'Patents',data:labVals}];
+  var statusColor={'Granted / active':'#2D6A4F','Pending':'#E9C46A','Lapsed / rejected':'#B91C1C','Not recorded':'#B8B4AC'};
   new Chart(document.getElementById('cLabs'),{
     type:'bar',
-    data:{labels:labLabels,datasets:[{data:labVals,backgroundColor:labBg,borderWidth:0}]},
+    data:{labels:labLabels,datasets:labStatus.map(function(s){return {label:s.label,data:s.data,backgroundColor:(statusColor[s.label]||'#E8865F'),borderWidth:0};})},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x+' patents';}}}},
-      scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},border:{display:false}},
-        y:{grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:11,weight:'600'}},border:{display:false}}}}
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:9},boxWidth:9,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.x;}}}},
+      scales:{x:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},border:{display:false}},
+        y:{stacked:true,grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:11,weight:'600'}},border:{display:false}}}}
   });
 }
 

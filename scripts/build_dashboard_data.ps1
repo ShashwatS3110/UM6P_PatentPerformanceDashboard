@@ -670,6 +670,23 @@ $labRank = @($labCounts.GetEnumerator() | ForEach-Object { [pscustomobject]@{ la
 $labTop = @($labRank | Select-Object -First 12)
 $labLabelsOut = @($labTop | ForEach-Object { Esc-Json $_.lab })
 $labValsOut = @($labTop | ForEach-Object { $_.count })
+
+# --- Patents by Lab, broken down by legal status (#2) ---
+$statusBuckets = @('Granted / active','Pending','Lapsed / rejected','Not recorded')
+function Status-Bucket($s) {
+    if ($s -match 'Maintenu|D.livr|Délivr|Actif') { return 'Granted / active' }
+    if ($s -match 'OMPIC|En cours|En phase|PCT|examen') { return 'Pending' }
+    if ($s -match 'Abandonn|Inactif|Expir|Rejet') { return 'Lapsed / rejected' }
+    return 'Not recorded'
+}
+$labIndex = @{}; for ($li = 0; $li -lt $labTop.Count; $li++) { $labIndex[$labTop[$li].lab] = $li }
+$labStatusArr = @{}; foreach ($bk in $statusBuckets) { $labStatusArr[$bk] = New-Object 'int[]' $labTop.Count }
+foreach ($p in $patents) {
+    $lab = if ($p.lab) { $p.lab.Trim() } else { '(unattributed)' }; if (-not $lab) { $lab = '(unattributed)' }
+    if (-not $labIndex.ContainsKey($lab)) { continue }
+    $labStatusArr[(Status-Bucket $p.statut)][$labIndex[$lab]]++
+}
+$labStatusOut = @($statusBuckets | ForEach-Object { @{ label=$_; data=@($labStatusArr[$_]) } })
 $labPatientsOut = [ordered]@{}; $labListOut = @()
 foreach ($lr in $labRank) {
     if ($labPats[$lr.lab].Count -lt 1) { continue }
@@ -704,6 +721,29 @@ $invTop = @($invAgg.GetEnumerator() | ForEach-Object {
 $invLabelsOut = @($invTop | ForEach-Object { Esc-Json $_.name })
 $invLabsOut   = @($invTop | ForEach-Object { Esc-Json $_.lab })
 $invValsOut   = @($invTop | ForEach-Object { $_.count })
+
+# --- Industry / academia collaboration mix, portfolio-wide (#3) ---
+$acadRe = 'Universit|UNIVERSITE|UNIV|Hassan|Cadi|Ibn |ENSA|ESITH|Ecole|ECOLE|Facult|UM5|UH2C|CNRST|CNESTEN|IRESEN|INRA|INRH|Institut'
+$collabIndustry = 0; $collabAcademic = 0; $collabIndependent = 0
+foreach ($p in $patents) {
+    $co = "$($p.partners)".Trim()
+    if (-not $co -or $co -eq '0') { $collabIndependent++; continue }
+    if ($co -match 'OCP') { $collabIndustry++; continue }
+    if ($co -match $acadRe) { $collabAcademic++; continue }
+    $collabIndustry++   # a named partner that is not a university = a company
+}
+
+# --- Average remaining patent life before 20-year expiry (#1) ---
+$activeForLife = @($patents | Where-Object { $_.year -gt 0 -and ($_.statut -match 'Maintenu|D.livr|Délivr|Actif') })
+$remainingYrs = @($activeForLife | ForEach-Object { [math]::Max(0, 20 - ($curYear - $_.year)) })
+$avgRemainingLife = if ($remainingYrs.Count) { [math]::Round(($remainingYrs | Measure-Object -Average).Average, 1) } else { 0 }
+$expiringSoon = @($remainingYrs | Where-Object { $_ -le 5 }).Count
+$lifeBands = @(
+    @{ label='> 15 yrs left'; data=@($remainingYrs | Where-Object { $_ -gt 15 }).Count },
+    @{ label='10-15 yrs';     data=@($remainingYrs | Where-Object { $_ -gt 10 -and $_ -le 15 }).Count },
+    @{ label='5-10 yrs';      data=@($remainingYrs | Where-Object { $_ -gt 5 -and $_ -le 10 }).Count },
+    @{ label='< 5 yrs left';  data=$expiringSoon }
+)
 $dives['researchers'] = Dive 'researchers' 'Top Researchers by Patent Output' 'Inventors credited on the most patents, with their main lab and domain' @('Researcher','Patents','Lab / Hub','Main domain') @(
     @($invTop | Select-Object -First 10 | ForEach-Object {
         ,@((Esc-Json $_.name), "$($_.count)", (Esc-Json $_.lab), (Esc-Json $_.theme))
@@ -879,11 +919,18 @@ $payload = [ordered]@{
     themeYear = $themeYearOut
     labLabels = $labLabelsOut
     labVals = $labValsOut
+    labStatus = $labStatusOut
     labList = $labListOut
     labPatents = $labPatientsOut
     invLabels = $invLabelsOut
     invLabs = $invLabsOut
     invVals = $invValsOut
+    collabIndustry = $collabIndustry
+    collabAcademic = $collabAcademic
+    collabIndependent = $collabIndependent
+    avgRemainingLife = $avgRemainingLife
+    expiringSoon = $expiringSoon
+    lifeBands = $lifeBands
     filingsIntl = $filingsIntlOut
     pruneCount = $pruneCount
     peerBench = $peerBench
