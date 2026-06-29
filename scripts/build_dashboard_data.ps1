@@ -767,6 +767,46 @@ $um6pKey = 'UM6P (incl. MAScIR)'
 $origReal = $(if ($peerBench[$um6pKey] -and $null -ne $peerBench[$um6pKey].originality) { $peerBench[$um6pKey].originality } else { $null })
 $sciProxReal = $(if ($peerBench[$um6pKey] -and $null -ne $peerBench[$um6pKey].sciNpl) { $peerBench[$um6pKey].sciNpl } else { $null })
 
+# ---- Country / UM6P quality benchmarks (same OECD basis, internationally-tracked subset) ----
+# Returns patent-weighted means + frac-based shares for one country file (optionally UM6P-only).
+function Country-Agg([string]$csv, [bool]$umOnly) {
+    if (-not (Test-Path $csv)) { return $null }
+    $fp=0.0; $usp=0.0; $tri=0.0
+    $orig=0.0;$no=0.0; $npl=0.0;$nn=0.0; $scope=0.0;$ns=0.0; $fwd=0.0;$nf=0.0; $t10=0.0;$nt=0.0
+    foreach ($r in (Import-Csv $csv)) {
+        if ($umOnly) {
+            $nm = "" + $r.standardized_name
+            if ($nm -match 'MAJESTE|ROI DU MAROC') { continue }
+            if ($nm -notmatch 'MOHAMMED VI POLYTECHNIC|MOHAMED VI POLYTECHNIQUE|MOHAMMED VI POLYTECHNIQUE|MASCIR|MOROCCAN FOUNDATION FOR ADVANCED|MORROCAN FOUNDATION') { continue }
+        }
+        $w = ToNum $r.n_patents
+        $fp  += (ToNum $r.frac_patents)
+        $usp += (ToNum $r.frac_uspto)
+        $tri += (ToNum $r.frac_triadic)
+        if ("$($r.mean_originality)" -ne '')        { $orig+=(ToNum $r.mean_originality)*$w; $no+=$w }
+        if ("$($r.mean_npl_cites)" -ne '')          { $npl +=(ToNum $r.mean_npl_cites)*$w;  $nn+=$w }
+        if ("$($r.mean_scope)" -ne '')              { $scope+=(ToNum $r.mean_scope)*$w;     $ns+=$w }
+        if ("$($r.mean_forward_cites_5yr)" -ne '')  { $fwd +=(ToNum $r.mean_forward_cites_5yr)*$w; $nf+=$w }
+        if ("$($r.frac_top10pct_forward)" -ne '')   { $t10 +=(ToNum $r.frac_top10pct_forward)*$w;  $nt+=$w }
+    }
+    if ($fp -le 0) { return $null }
+    return @{
+        patents  = [math]::Round($fp)
+        intlUS   = [math]::Round(100*$usp/$fp, 1)
+        triadic  = [math]::Round(100*$tri/$fp, 1)
+        orig     = $(if ($no) { [math]::Round($orig/$no, 2) } else { $null })
+        npl      = $(if ($nn) { [math]::Round($npl/$nn, 2) } else { $null })
+        scope    = $(if ($ns) { [math]::Round($scope/$ns, 2) } else { $null })
+        fwd5yr   = $(if ($nf) { [math]::Round($fwd/$nf, 3) } else { $null })
+        top10    = $(if ($nt) { [math]::Round(100*$t10/$nt, 1) } else { $null })
+    }
+}
+$cf = @{}
+$cf['um6p']        = Country-Agg (Join-Path $base 'morocco_assignees_tech_patent_counts.csv') $true
+$cf['morocco']     = Country-Agg (Join-Path $base 'morocco_assignees_tech_patent_counts.csv') $false
+$cf['tunisia']     = Country-Agg (Join-Path $base 'tunisia_assignees_tech_patent_counts.csv') $false
+$cf['southafrica'] = Country-Agg (Join-Path $base 'south_africa_assignees_tech_patent_counts.csv') $false
+
 $payload = [ordered]@{
     generated = (Get-Date).ToString('yyyy-MM-dd')
     totalPatents = $totalPatents
@@ -828,6 +868,7 @@ $payload = [ordered]@{
     peerBench = $peerBench
     origReal = $origReal
     sciProxReal = $sciProxReal
+    cf = $cf
     partnerYears = @($partnerYears)
     partnerOcp = @($partnerYears | ForEach-Object { $partnerOcp[$_] })
     partnerOther = @($partnerYears | ForEach-Object { $partnerOther[$_] })

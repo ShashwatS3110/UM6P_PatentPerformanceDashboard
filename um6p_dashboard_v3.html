@@ -176,11 +176,11 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <div class="section-kicker">At a Glance</div>
     <div class="subq">Where is the portfolio strong, and where is it stalling?</div>
     <div class="card lead" style="margin-bottom:24px">
-      <span class="statusbadge sb-avail">Tracked metrics</span>
-      <div class="card-t">Leading Indicators vs Benchmarks <i class="ti ti-info-circle info-ic" title="Each spoke is an absolute 0–100 score: 100 = a world-class reference level, 0 = the floor. It is not a percentage of patents. Two spokes are not yet on real data — 'Theme vs Strategy' uses placeholder strategy weights and 'Commercialization' is illustrative — so read those directionally. Hover any spoke for the underlying figure."></i></div>
+      <span class="statusbadge sb-avail">Tracked now</span>
+      <div class="card-t">Patent Quality &amp; Impact vs Regional Peers <i class="ti ti-info-circle info-ic" title="Six quality/impact metrics from the OECD country datasets — UM6P vs a selected peer (toggle: Morocco / Tunisia / South Africa). Each axis is normalised so the strongest of the four reaches 100; hover for the raw value. Covers only the internationally-tracked subset (~28 UM6P patents), so read it as directional. Volume, themes and coverage elsewhere use the full 426-patent inventory."></i></div>
       <div class="bench-anchor"></div>
       <div class="radarwrap"><canvas id="cRadar"></canvas></div>
-      <div class="insight">Filing pace and research theme concentration are clear strengths. International reach, commercialization, and citation impact are the active gaps — where patents need to become global, earning assets.</div>
+      <div class="insight" id="radarInsight">UM6P vs regional peers on patent quality and impact (internationally-tracked subset).</div>
     </div>
     <div class="supLabel">Leading indicators by tab</div>
     <div class="tileGrid" id="execTiles"></div>
@@ -210,7 +210,6 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Annual Filing Growth Rate (CAGR) <i class="ti ti-info-circle info-ic" title="Compound annual growth rate of filings over the last 3 years."></i></div>
         <div class="bigstat" id="statCagr" style="color:var(--green)">+14%/yr</div>
-        <div class="benchwrap" data-bench="cagr"></div>
         <div class="insight">Compound annual growth of filings over the last three years — real structural momentum. The bottleneck to watch is whether examination and prosecution capacity scales with the pipeline.</div>
       </div>
       <div class="card sup">
@@ -224,8 +223,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Time to Patent Grant <i class="ti ti-info-circle info-ic" title="Average time in years from filing an application to the patent office granting it."></i></div>
         <div class="bigstat">~1.8 years</div>
-        <div class="benchwrap" data-bench="timeToGrant"></div>
-        <div class="insight">Under two years from filing to grant — faster than the OMPIC average of ~2.5 years. A small tail of slow-moving files (3–4 year cases) pulls the average up; identifying and resolving those cases would improve the mean further.</div>
+        <div class="insight">Under two years from filing to grant in the MAScIR renewal cohort (File 5) — a small tail of slow 3–4 year cases pulls the average up. No like-for-like peer figure is available, so this is shown without a benchmark.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 slowest-to-grant patents</div>
       </div>
       <div class="card sup">
@@ -339,14 +337,12 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">International Filing Rate <i class="ti ti-info-circle info-ic" title="Share of patent applications extended beyond Morocco through the PCT system or direct foreign filing."></i></div>
         <div class="bigstat" id="statPctIntl" style="color:var(--red)">8%</div>
-        <div class="benchwrap" data-bench="goingIntl"></div>
-        <div class="insight">Only a small share of UM6P's applications are filed beyond Morocco. The rest stay domestic and cannot be enforced in any foreign market. A default PCT policy for technologies with export potential would move this metric fastest.</div>
+        <div class="insight" id="intlInsight">Only a small share of UM6P's applications are filed beyond Morocco. The rest stay domestic and cannot be enforced in any foreign market. A default PCT policy for technologies with export potential would move this metric fastest.</div>
       </div>
       <div class="card sup clickable" onclick="openDive('triadicList')">
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Top-Market Patent Coverage <i class="ti ti-info-circle info-ic" title="Share of patents filed in Europe, the US and Japan simultaneously — the global gold standard for commercial-grade protection."></i></div>
         <div class="bigstat" style="color:var(--amber)">~0%</div>
-        <div class="benchwrap" data-bench="topTier"></div>
         <div class="insight">Near-zero tri-market coverage (EU + US + Japan). Rather than viewing this as a failure, it points to a specific action: curate a shortlist of the 5–10 inventions with genuine global commercial potential and fund their international extension. One strong triadic patent is worth more than 50 domestic ones.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> Closest-to-triadic candidates</div>
       </div>
@@ -354,7 +350,6 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-avail">Tracked now</span>
         <div class="card-t">Patent Portfolio Survival Rate <i class="ti ti-info-circle info-ic" title="Share of patents in the MAScIR renewal registry (File 5) still paying annuities. Does not cover newer UM6P TTO patents absent from that file."></i></div>
         <div class="bigstat" id="statRenewal" style="color:var(--green)">~97%</div>
-        <div class="benchwrap" data-bench="keptAlive"></div>
         <div class="insight">Nearly all patents in the MAScIR renewal registry are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 5 longest-active patents</div>
       </div>
@@ -370,44 +365,45 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 
   <!-- TAB 4: PORTFOLIO QUALITY -->
   <div class="view" id="tab4">
-    <div class="subq">Are UM6P patents technically strong and influencing the direction of global research?</div>
+    <div class="subq">How does UM6P's patent quality and impact compare to regional peers?</div>
+    <div class="disclaimer" style="border-left-color:var(--green)"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> This tab compares UM6P with <b>Morocco, Tunisia and South Africa averages</b> using the OECD country quality datasets. It covers only the <b>internationally-tracked subset</b> (~28 UM6P patents, not the full 426) and rests on small samples — so read it as <b>directional</b>. Use the <b>Compare against</b> control to switch the peer. <span class="bench-anchor" style="display:inline"></span></div>
     <div class="leadWrap">
       <div class="card lead clickable" onclick="openDive('forwardCitations')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Forward Citations per Patent <i class="ti ti-info-circle info-ic" title="How often later patents by other inventors cite UM6P patents — the standard proxy for technological influence."></i></div>
+        <div class="card-t">High-Impact Patents (top-10% most cited) <i class="ti ti-info-circle info-ic" title="Share of the institution's patents that rank in the top 10% most-cited for their field and cohort (OECD). The cleanest cross-country measure of technological impact. UM6P value and peer averages are from the country quality datasets (international subset)."></i></div>
         <div class="statpair">
-          <div><div class="sp-v">0.8</div><div class="sp-l">avg citations per patent</div></div>
+          <div><div class="sp-v" id="statTopImpact">5%</div><div class="sp-l">in the top-10% most cited</div></div>
+          <div><div class="sp-v">0.8</div><div class="sp-l">avg forward cites (File 7, ~25)</div></div>
           <div><div class="sp-v">&lt;4 yrs</div><div class="sp-l">median patent age</div></div>
         </div>
-        <div class="bench-anchor"></div>
-        <div class="benchwrap" data-bench="fwdCit"></div>
-        <div class="insight">Forward citations are still low, but the portfolio's median patent is less than four years old — citation accumulation takes 5–7 years to mature. The real test comes in 2027–2028 as the 2021–2023 cohort ages.</div>
+        <div class="benchwrap" data-bench="topImpact"></div>
+        <div class="insight" id="impactInsight">UM6P's high-impact share trails the regional average — but the portfolio's median patent is under four years old, and citations take 5–7 years to mature. The real test comes in 2027–2028 as the 2021–2023 cohort ages.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> 10 most-cited patents</div>
       </div>
     </div>
-    <div class="supLabel">Supporting</div>
+    <div class="supLabel">Supporting — UM6P vs <span class="bench-ref">Morocco avg</span></div>
     <div class="supGrid">
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Originality Index <i class="ti ti-info-circle info-ic" title="OECD originality indicator: how broadly a patent draws on diverse technology fields in its cited references (0–1; higher = more cross-domain). From the Moroccan patents quality dataset, UM6P incl. MAScIR, international subset only — a small sample, so directional."></i></div>
-        <div class="bigstat" id="statOrig">~0.65</div>
-        <div class="benchwrap" data-target="origIndex"></div>
-        <div class="insight" id="origInsight">Real value from the Moroccan patents quality dataset. Among Moroccan universities with data, UM6P sits behind UIR but ahead of the field — a genuine strength, though measured on a small international sample.</div>
+        <div class="card-t">Originality <i class="ti ti-info-circle info-ic" title="OECD originality index: how broadly a patent draws on diverse technology fields in its cited references (0–1; higher = more cross-domain). UM6P vs the selected country average, international subset."></i></div>
+        <div class="bigstat" id="statOrig">0.63</div>
+        <div class="benchwrap" data-bench="origIndex"></div>
+        <div class="insight" id="origInsight">UM6P's originality is roughly mid-pack regionally — neither a standout nor a weakness on this measure.</div>
       </div>
       <div class="card sup clickable" onclick="openDive('techBreadth')">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Patent Technology Scope <i class="ti ti-info-circle info-ic" title="Average number of distinct IPC technology classifications per patent — a wider scope means more licensing angles."></i></div>
-        <div class="bigstat">~1.9 classes</div>
-        <div class="benchwrap" data-bench="techBreadth"></div>
-        <div class="insight">Most patents span 1–2 IPC classes — narrowly scoped inventions with fewer licensing angles than platform technologies. Broader patents (3+ classes) are typically harder to design around and command higher royalties. The 5 broadest patents in the portfolio each span 3–5 classes, suggesting the capability exists but is not yet consistent.</div>
-        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 broadest patents by scope</div>
+        <div class="card-t">Technology Scope <i class="ti ti-info-circle info-ic" title="OECD scope index: how broadly a patent spans distinct technology fields (0–1; higher = broader). UM6P vs the selected country average. The drill-down lists the broadest UM6P families by distinct IPC classes (File 6)."></i></div>
+        <div class="bigstat" id="statScope">0.34</div>
+        <div class="benchwrap" data-bench="scope"></div>
+        <div class="insight" id="scopeInsight">UM6P is on par with — or slightly above — the regional average on technology scope. The drill-down shows the broadest individual families.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 broadest patents by IPC classes</div>
       </div>
       <div class="card sup">
         <span class="statusbadge sb-avail">Tracked now</span>
-        <div class="card-t">Science Proximity (NPL citations) <i class="ti ti-info-circle info-ic" title="OECD measure: average non-patent-literature (scientific) citations per patent — how directly inventions cite academic science. From the Moroccan patents quality dataset (international subset). Near-zero means patents rarely cite scientific papers directly."></i></div>
-        <div class="bigstat" id="statSciProx">~0.02</div>
-        <div class="benchwrap" data-target="sciProx"></div>
-        <div class="insight" id="sciInsight">Real value from the quality dataset: UM6P patents cite almost no scientific literature directly — they read as engineering adaptations of known science rather than direct translations of the research frontier. A strong lever: encourage inventors to cite the underlying papers, which also strengthens validity.</div>
+        <div class="card-t">Science Linkage (NPL citations) <i class="ti ti-info-circle info-ic" title="OECD measure: average non-patent-literature (scientific) citations per patent — how directly inventions cite academic science. UM6P vs the selected country average. Near-zero across the whole region, so this is an ecosystem pattern, not UM6P-specific."></i></div>
+        <div class="bigstat" id="statSciProx">0.01</div>
+        <div class="benchwrap" data-bench="sciProx"></div>
+        <div class="insight" id="sciInsight">UM6P cites almost no scientific literature directly — but so does the rest of the region (all near zero). It's an ecosystem pattern. A lever: encourage inventors to cite the underlying papers, which also strengthens patent validity.</div>
       </div>
     </div>
   </div>
@@ -505,8 +501,7 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
         <span class="statusbadge sb-illus">Illustrative</span>
         <div class="card-t">Spin-off Companies Created <i class="ti ti-info-circle info-ic" title="New companies founded each year based on UM6P patents."></i></div>
         <div class="bigstat">~2 / yr</div>
-        <div class="benchwrap" data-bench="spinoffs"></div>
-        <div class="insight">~2 spin-offs per year versus 38 at MIT — the gap reflects ecosystem maturity, not a lack of technology. Morocco's venture capital market and university-to-startup pathways are still developing. A dedicated internal pre-incubation programme for patent-backed ventures could realistically double this within three years.</div>
+        <div class="insight">Illustrative — awaiting a venture registry. ~2 spin-offs/year is typical for a young ecosystem; a dedicated pre-incubation programme for patent-backed ventures could lift it materially over three years.</div>
         <div class="drill-hint"><i class="ti ti-list-search"></i> UM6P spin-off companies</div>
       </div>
       <div class="card sup">
@@ -565,8 +560,8 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 <div id="benchctrl" class="benchctrl">
   <span class="bc-label">Compare against</span>
   <button data-k="morocco" class="on" onclick="setBench('morocco')">Morocco average</button>
-  <button data-k="africa" onclick="setBench('africa')">Africa average</button>
-  <button data-k="top" onclick="setBench('top')">Top global institution</button>
+  <button data-k="tunisia" onclick="setBench('tunisia')">Tunisia average</button>
+  <button data-k="southafrica" onclick="setBench('southafrica')">South Africa average</button>
 </div>
 
 <div class="modal-overlay" id="diveModal" onclick="closeDive()">
@@ -628,8 +623,9 @@ function go(id,btn){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 var benchCtrlEl = document.getElementById('benchctrl');
+// The peer toggle only applies where there are real country-benchmark bars: Overview radar (0) and Quality (4).
 function placeBenchCtrl(tabId){
-  var view = document.getElementById('tab'+tabId);
+  var view = (tabId==='0'||tabId==='4') ? document.getElementById('tab'+tabId) : null;
   var anchor = view ? view.querySelector('.bench-anchor') : null;
   if(anchor){ anchor.appendChild(benchCtrlEl); benchCtrlEl.style.display='flex'; }
   else { benchCtrlEl.style.display='none'; }
@@ -660,8 +656,8 @@ function buildExecTiles(){
       status:'a', verdict:'Portfolio shares are real (File 3 theme tags). The strategy-gap comparison uses placeholder targets pending UM6P’s declared allocation.'},
     {tab:'3', label:'International Filing Rate', value:D.pctRate+'% international', status:'r',
       verdict:'Only '+D.pctRate+'% of '+D.totalPatents+' applications are filed beyond Morocco (PCT/foreign, File 3).'},
-    {tab:'4', label:'Forward Citations per Patent', value:D.avgCites+' avg', status:'a',
-      verdict:'Orbit export (File 7, '+(D.citeSampleTotal||0)+' internationally-indexed patents): '+D.avgCites+' forward citations on average.'},
+    {tab:'4', label:'Quality & Impact vs Peers', value:((D.cf&&D.cf.um6p)?Math.round(D.cf.um6p.top10):0)+'% high-impact', status:'r',
+      verdict:'Top-10% most-cited share is '+((D.cf&&D.cf.um6p)?Math.round(D.cf.um6p.top10):0)+'% vs ~'+((D.cf&&D.cf.morocco)?Math.round(D.cf.morocco.top10):0)+'% Morocco / ~'+((D.cf&&D.cf.southafrica)?Math.round(D.cf.southafrica.top10):0)+'% South Africa (internationally-tracked subset).'},
     {tab:'5', label:'Active Commercialization Rate', value:'17% (illustrative)', status:'a',
       verdict:'Still illustrative — awaiting TTO licensing registry (Files 3–8 do not include deal logs).'},
     {tab:'6', label:'Industry Concentration Index', value:'HHI '+D.hhi, status:'r',
@@ -716,15 +712,21 @@ function applyLiveMetrics(){
   var ag=extremaAlign(), tt=topTreemap(), tc=topCiteTheme();
   var solo2025=(D.partnerSolo&&D.partnerSolo.length)?D.partnerSolo[D.partnerSolo.length-1]:0;
   var tto2025=(D.filingsTto&&D.filingsTto.length)?D.filingsTto[D.filingsTto.length-1]:0;
-  var radarSc=D.radarScores||[];
-  var radarDims=['filing growth','theme–strategy fit','international reach','citation impact','commercialization','partner diversification'];
-  // Strongest/weakest are computed only over the REAL spokes — indices 1 (placeholder strategy weights)
-  // and 4 (illustrative commercialization) are excluded so the headline isn't built on non-tracked data.
-  var realIdx=[0,2,3,5], weakIdx=realIdx[0], strongIdx=realIdx[0];
-  realIdx.forEach(function(i){ if((radarSc[i]||0)<(radarSc[weakIdx]||0)) weakIdx=i; if((radarSc[i]||0)>(radarSc[strongIdx]||0)) strongIdx=i; });
-
-  setSel('#tab0 .card.lead .insight',
-    'Each spoke is scored 0–100, where 100 = a world-class reference and 0 = the floor — so the shape shows absolute standing, not just rank. Among the tracked dimensions, strongest is '+radarDims[strongIdx]+' ('+(radarSc[strongIdx]||'—')+'/100) and weakest is '+radarDims[weakIdx]+' ('+(radarSc[weakIdx]||'—')+'/100) — the clearest area to invest in next. (Theme-fit and commercialization spokes are not yet on real data.) Hover any spoke for the underlying figure.');
+  // Radar headline: strongest/weakest among the 6 quality/impact metrics, UM6P vs Morocco avg (real, country files)
+  var cf=D.cf||{}, um=cf.um6p||{}, mor=cf.morocco||{};
+  var rdims=[['intlUS','international reach','%'],['triadic','triadic coverage','%'],['orig','originality',''],['scope','technology scope',''],['top10','high-impact citations','%'],['fwd5yr','forward citations','']];
+  var rStrong=null,rWeak=null;
+  if(mor.intlUS!=null){
+    rdims.forEach(function(d){
+      var u=um[d[0]]||0, m=mor[d[0]]||0, ratio=m>0?u/m:1;
+      if(!rStrong||ratio>rStrong.r) rStrong={n:d[1],r:ratio,u:u,m:m,s:d[2]};
+      if(!rWeak||ratio<rWeak.r) rWeak={n:d[1],r:ratio,u:u,m:m,s:d[2]};
+    });
+  }
+  if(rStrong&&rWeak){
+    setSel('#radarInsight',
+      'UM6P vs regional peers on quality and impact (internationally-tracked subset, ~'+(um.patents||'28')+' UM6P patents). Closest to the Morocco average on '+rStrong.n+' ('+rStrong.u+rStrong.s+' vs '+rStrong.m+rStrong.s+'); furthest behind on '+rWeak.n+' ('+rWeak.u+rWeak.s+' vs '+rWeak.m+rWeak.s+') — the clearest gap to close. South Africa leads the region on reach and impact.');
+  }
 
   setSel('#tab1 .card.lead .insight',
     D.filings2025+' filings in 2025 — the record year in File 3'+(peakYear!==2025?' (prior peak '+peakCount+' in '+peakYear+')':'')+'. '+D.filings2026+' filed so far in 2026 (the year is still in progress, so it is not yet comparable). Chart covers '+D.filingsDated+' applications with a filing year; '+D.filingsUndated+' legacy rows lack a date in File 3.');
@@ -761,8 +763,11 @@ function applyLiveMetrics(){
   setSel('#tab3 .card.lead .insight',
     'Morocco (national): '+moroccoCount+' of '+D.totalPatents+' applications ('+Math.round(100*moroccoCount/Math.max(1,D.totalPatents))+'%) by primary filing route. '+(D.countryNotRecorded||0)+' have no filing country recorded in File 3 (a data gap, not assumed domestic). Internationalised routes: '+intlBuckets.slice(0,4).map(function(b){return b.label+' ('+b.value+')';}).join(', ')+'.');
 
-  setSel('#tab3 .supGrid .card.sup:nth-child(1) .insight',
-    D.pctRate+'% of applications are filed beyond Morocco (PCT/foreign, File 3) — far below the illustrative Morocco-wide benchmark of 77% on the comparison bar.');
+  (function(){
+    var cfa=D.cf||{}, u=cfa.um6p||{}, m=cfa.morocco||{}, sa=cfa.southafrica||{};
+    var extra=(u.intlUS!=null)?(' On the internationally-tracked subset, UM6P reaches the US on ~'+u.intlUS+'% of patents, vs ~'+m.intlUS+'% for Morocco overall and ~'+sa.intlUS+'% for South Africa (the regional leader).'):'';
+    setSel('#intlInsight', D.pctRate+'% of UM6P’s '+D.totalPatents+' applications are filed beyond Morocco (PCT/foreign, File 3).'+extra+' International reach is the portfolio’s clearest gap.');
+  })();
 
   setSel('#tab3 .supGrid .card.sup:nth-child(2) .insight',
     'No patent yet holds full EU + US + Japan (triadic) protection. The closest are a small set already filed in EP + US that need only a Japan extension to complete the triad — the highest-leverage shortlist for international filing. Open the drill-down for those candidates.');
@@ -770,11 +775,12 @@ function applyLiveMetrics(){
   setSel('#tab3 .supGrid .card.sup:nth-child(3) .insight',
     '~'+D.renewalRate+'% active ('+(D.renewalActiveCount||'?')+' of '+(D.renewalTotal||'?')+') in the MAScIR renewal registry (File 5) — not the full '+D.totalPatents+'-patent portfolio. '+D.grantedCount+' applications granted in File 3; newer TTO patents may not yet be in File 5 or at annuity stage.');
 
-  setSel('#tab4 .card.lead .insight',
-    D.avgCites+' forward citations per patent on average across the '+(D.citeSampleTotal||0)+'-patent Orbit/File 7 sample. The portfolio is young — citation counts typically take 5–7 years to mature, so this will rise as the 2021–2023 cohort ages.');
-
-  setSel('#tab4 .supGrid .card.sup:nth-child(2) .insight',
-    '~'+D.avgIpc+' distinct IPC classes per patent family on average (File 6). The broadest families span 3–5 classes — see the technology-scope deep dive for the patents and their themes.');
+  (function(){
+    var cfb=D.cf||{}, u=cfb.um6p||{}, m=cfb.morocco||{}, sa=cfb.southafrica||{};
+    if(u.top10!=null){
+      setSel('#impactInsight','UM6P has ~'+Math.round(u.top10)+'% of its patents in the top-10% most-cited, vs ~'+Math.round(m.top10)+'% for Morocco overall and ~'+Math.round(sa.top10)+'% for South Africa. The gap is real, but the portfolio’s median patent is under four years old — citations take 5–7 years to mature, so expect this to rise as the 2021–2023 cohort ages.');
+    }
+  })();
 
   setSel('#tab6 .card.lead .insight',
     'Industry co-filing is highly concentrated (HHI '+D.hhi+', where above 0.5 = concentrated): among filings with a named industry partner, one partner (OCP) dominates. Note this counts OCP framework-reference tags as OCP-linked, so it may over-state true co-ownership. Broadening to two or three additional industry co-inventors would materially de-risk the portfolio’s commercial routes.');
@@ -788,62 +794,58 @@ function applyLiveMetrics(){
   var elHhi=document.getElementById('statHhi'); if(elHhi) elHhi.textContent=D.hhi;
   var tab3stats=document.querySelectorAll('#tab3 .supGrid .bigstat');
   if(tab3stats.length>=3){ tab3stats[0].textContent=D.pctRate+'%'; tab3stats[1].textContent=(D.triadicShare<1?'~0':D.triadicShare)+'%'; tab3stats[2].textContent='~'+D.renewalRate+'%'; }
-  var tab4stats=document.querySelectorAll('#tab4 .statpair .sp-v');
-  if(tab4stats.length>=1){ tab4stats[0].textContent=D.avgCites; }
-  var tab4b=document.querySelector('#tab4 .card.sup:nth-child(2) .bigstat');
-  if(tab4b) tab4b.textContent='~'+D.avgIpc+' classes';
-
-  /* ---- New (review additions): real originality/sci-prox, peer context, pruning ---- */
-  if(D.origReal!=null){
-    if(typeof TARGET!=='undefined' && TARGET.origIndex) TARGET.origIndex.um=D.origReal;
-    var so=document.getElementById('statOrig'); if(so) so.textContent=Number(D.origReal).toFixed(2);
-  }
-  if(D.sciProxReal!=null){
-    if(typeof TARGET!=='undefined' && TARGET.sciProx) TARGET.sciProx.um=D.sciProxReal;
-    var ssx=document.getElementById('statSciProx'); if(ssx) ssx.textContent='~'+Number(D.sciProxReal).toFixed(2);
-  }
-  var pb=D.peerBench||{}, umP=pb['UM6P (incl. MAScIR)'], uirP=pb['Internationale de Rabat (UIR)'];
-  if(umP && umP.originality!=null){
-    setSel('#origInsight','UM6P (incl. MAScIR) scores '+umP.originality+' on the OECD originality index — above the 0.50 reference level'+(uirP&&uirP.originality!=null?', though Université Internationale de Rabat leads Moroccan peers at '+uirP.originality:'')+'. Measured on the international subset only (small sample), so read it as directional — but a genuine strength to build on.');
+  /* ---- Quality tab: real country-file values (UM6P, internationally-tracked subset) ---- */
+  var q=(D.cf&&D.cf.um6p)?D.cf.um6p:null;
+  if(q){
+    var sti=document.getElementById('statTopImpact'); if(sti) sti.textContent=Math.round(q.top10)+'%';
+    var sto=document.getElementById('statOrig'); if(sto) sto.textContent=Number(q.orig).toFixed(2);
+    var stc=document.getElementById('statScope'); if(stc) stc.textContent=Number(q.scope).toFixed(2);
+    var sts=document.getElementById('statSciProx'); if(sts) sts.textContent=Number(q.npl).toFixed(2);
   }
   if(D.pruneCount!=null){ var ps=document.getElementById('pruneStat'); if(ps) ps.textContent='~'+D.pruneCount; }
 }
 
 buildExecTiles();
 
-/* ---- Benchmark system (external comparators) ---- */
+/* ---- Real peer benchmark system: country OECD quality datasets (internationally-tracked subset) ---- */
+var CF = (D && D.cf) ? D.cf : {};
+function cfv(ent,k){ var e=CF[ent]; return (e && e[k]!=null) ? e[k] : 0; }
 var BENCH = {
-  cagr:       {um:39,  max:40,  dec:0, prefix:'+', suffix:'%', lower:false, barMax:40, cmp:{morocco:14, africa:11, top:22}},
-  timeToGrant:{um:1.8, max:3,   dec:1,             suffix:' yr',lower:true,  barMax:3.5, cmp:{morocco:2.5, africa:2.8, top:2.0}},
-  fwdCit:     {um:0.8, max:1.8, dec:1,             suffix:'',   lower:false, barMax:2.0, cmp:{morocco:0.9, africa:0.7, top:1.8}},
-  techBreadth:{um:1.9, max:3,   dec:1,             suffix:'',   lower:false, barMax:3.5, cmp:{morocco:1.8, africa:1.7, top:2.8}},
-  goingIntl:  {um:6,   max:100, dec:0,             suffix:'%',  lower:false, barMax:100, cmp:{morocco:77,  africa:45, top:85}},
-  topTier:    {um:0.5, umText:'~0%', max:20, dec:0, suffix:'%', lower:false, barMax:20, cmp:{morocco:5,  africa:4,  top:15}},
-  keptAlive:  {um:96,  max:100, dec:0,             suffix:'%',  lower:false, barMax:100, cmp:{morocco:85,  africa:80, top:90}},
-  spinoffs:   {um:2,   max:40,  dec:0,             suffix:'/yr',lower:false, barMax:40, cmp:{morocco:5,   africa:4,  top:38}}
+  topImpact: {key:'top10',  dec:0, suffix:'%', lower:false},
+  origIndex: {key:'orig',   dec:2, suffix:'',  lower:false},
+  scope:     {key:'scope',  dec:2, suffix:'',  lower:false},
+  intlReach: {key:'intlUS', dec:0, suffix:'%', lower:false},
+  sciProx:   {key:'npl',    dec:2, suffix:'',  lower:false}
 };
-if(D && D.bench){
-  Object.keys(D.bench).forEach(function(k){ if(BENCH[k]) BENCH[k].um = D.bench[k]; });
-  if(D.triadicShare < 1 && BENCH.topTier) BENCH.topTier.umText = '~0%';
-}
+Object.keys(BENCH).forEach(function(k){
+  var b=BENCH[k];
+  b.um = cfv('um6p', b.key);
+  b.cmp = {morocco:cfv('morocco',b.key), tunisia:cfv('tunisia',b.key), southafrica:cfv('southafrica',b.key)};
+});
 /* ---- Target system (internal UM6P targets for private-data metrics) ---- */
 var TARGET = {
   filingsRes:     {um:3.4, target:5.0,   max:7,    dec:1, suffix:'/100 staff', lower:false},
   disclosures:    {um:142, target:200,   max:250,  dec:0, suffix:'/yr',        lower:false},
-  origIndex:      {um:0.32,target:0.50,  max:1.0,  dec:2, suffix:'',           lower:false},
-  sciProx:        {um:1.6, target:2.5,   max:4,    dec:1, suffix:' refs/patent',lower:false},
   deals:          {um:6,   target:15,    max:20,   dec:0, suffix:'/yr',        lower:false},
   income:         {um:180, target:500,   max:1000, dec:0, prefix:'$', suffix:'K', lower:false},
   incomePerPatent:{um:620, target:2000,  max:3000, dec:0, prefix:'$', suffix:'',  lower:false},
   startups:       {um:9,   target:15,    max:25,   dec:0, suffix:'%',          lower:false},
   commRate:       {um:17,  target:30,    max:50,   dec:0, suffix:'%',          lower:false}
 };
-var BENCH_NAMES = {morocco:'Morocco avg', africa:'Africa avg', top:'Top global inst.'};
-var RADAR_BENCH = (D && D.radarBench) ? D.radarBench : {
-  morocco:[48,30,34,32,28,55],
-  africa: [42,28,30,28,26,50],
-  top:    [88,82,90,95,90,78]
-};
+var BENCH_NAMES = {morocco:'Morocco avg', tunisia:'Tunisia avg', southafrica:'South Africa avg'};
+/* Radar (Overview): UM6P vs a selected regional peer on 6 quality/impact metrics, all from the
+   country OECD datasets (same basis). Each axis normalised to the strongest of the four entities. */
+var radarMetrics = [
+  {key:'intlUS', label:'International Reach', suffix:'%'},
+  {key:'triadic',label:'Triadic Coverage',   suffix:'%'},
+  {key:'orig',   label:'Originality',         suffix:''},
+  {key:'scope',  label:'Tech Scope',          suffix:''},
+  {key:'top10',  label:'High-Impact Citations',suffix:'%'},
+  {key:'fwd5yr', label:'Forward Citations',   suffix:''}
+];
+var radarEntities = ['um6p','morocco','tunisia','southafrica'];
+function radarMax(k){ return Math.max.apply(null, radarEntities.map(function(e){return cfv(e,k);})) || 1; }
+function radarNorm(ent){ return radarMetrics.map(function(m){ return Math.round(100*cfv(ent,m.key)/radarMax(m.key)); }); }
 var currentBench = 'morocco';
 var radarChart = null;
 function fmtB(b,v){
@@ -853,8 +855,7 @@ function fmtB(b,v){
 }
 function pct(v,max){ return Math.max(2, Math.min(100, v/max*100)); }
 function benchScaleMax(b, cmpVal){
-  if(b.barMax) return b.barMax;
-  return Math.max(b.um, cmpVal, b.cmp.top, b.cmp.morocco, b.cmp.africa) * 1.1;
+  return (Math.max(b.um, b.cmp.morocco, b.cmp.tunisia, b.cmp.southafrica) * 1.25) || 1;
 }
 function renderBench(){
   document.querySelectorAll('[data-bench]').forEach(function(el){
@@ -898,7 +899,7 @@ function setBench(k){
   renderBench();
   if(radarChart){
     radarChart.data.datasets[1].label=BENCH_NAMES[k];
-    radarChart.data.datasets[1].data=RADAR_BENCH[k];
+    radarChart.data.datasets[1].data=radarNorm(k);
     radarChart.update();
   }
 }
@@ -942,33 +943,32 @@ var partnerOcp = D ? D.partnerOcp : [2,3,2,2,3,2,2];
 var partnerOther = D ? D.partnerOther : [1,1,1,0,1,2,1];
 var partnerAcad = D ? D.partnerAcad : [1,0,1,1,1,0,2];
 var partnerSolo = D ? D.partnerSolo : [5,9,5,10,11,14,20];
-var radarScores = D && D.radarScores ? D.radarScores : [ScaleRadar(25,22),57,ScaleRadar(8,77),ScaleRadar(0.8,1.8),57,10];
-var radarActuals = D && D.radarActuals ? D.radarActuals : [];
-function ScaleRadar(v,top){ return Math.min(100, Math.round(100*v/top)); }
-
-/* Radar chart — Overview (0–100 index, NOT raw patent counts) */
+/* Radar — Overview: UM6P vs a regional peer on 6 quality/impact metrics (country OECD datasets).
+   Each axis is normalised to the strongest of UM6P/Morocco/Tunisia/SA; tooltip shows the raw value. */
+function radarRaw(ent,i){ return cfv(ent, radarMetrics[i].key); }
 radarChart = new Chart(document.getElementById('cRadar'),{
   type:'radar',
   data:{
-    labels:['Filing Growth (CAGR)','Theme vs Strategy','International Filing Rate','Forward Citations','Commercialization Rate','Industry Partnerships'],
+    labels:radarMetrics.map(function(m){return m.label;}),
     datasets:[
-      {label:'UM6P',data:radarScores,borderColor:'#D7492A',backgroundColor:'rgba(215,73,42,.18)',borderWidth:2,pointBackgroundColor:'#D7492A',pointRadius:4},
-      {label:BENCH_NAMES[currentBench],data:RADAR_BENCH[currentBench],borderColor:'#757575',backgroundColor:'rgba(117,117,117,.06)',borderWidth:2,borderDash:[6,4],pointBackgroundColor:'#757575',pointRadius:3}
+      {label:'UM6P (incl. MAScIR)',data:radarNorm('um6p'),borderColor:'#D7492A',backgroundColor:'rgba(215,73,42,.18)',borderWidth:2,pointBackgroundColor:'#D7492A',pointRadius:4},
+      {label:BENCH_NAMES[currentBench],data:radarNorm(currentBench),borderColor:'#757575',backgroundColor:'rgba(117,117,117,.06)',borderWidth:2,borderDash:[6,4],pointBackgroundColor:'#757575',pointRadius:3}
     ]
   },
   options:{responsive:true,maintainAspectRatio:false,
     plugins:{
       legend:{position:'bottom',labels:{font:{family:'Montserrat',size:11},color:'#101010',boxWidth:14,padding:14}},
       tooltip:{callbacks:{
-        title:function(items){ return items[0].label; },
+        title:function(items){ return radarMetrics[items[0].dataIndex].label; },
         label:function(ctx){
-          var idx=ctx.dataIndex, score=ctx.raw, actual=radarActuals[idx]||'';
-          var line=ctx.dataset.label+': '+score+'/100';
-          return actual?[line, actual]:line;
+          var m=radarMetrics[ctx.dataIndex];
+          var ent=ctx.datasetIndex===0?'um6p':currentBench;
+          var raw=radarRaw(ent,ctx.dataIndex);
+          return ctx.dataset.label+': '+raw+m.suffix+'  ('+ctx.raw+'/100 vs regional best)';
         }
       }}
     },
-    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:'#9E9E9E',backdropColor:'transparent',font:{family:'Montserrat',size:9}},grid:{color:'rgba(0,0,0,.08)'},angleLines:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{family:'Montserrat',size:10,weight:'600'},color:'#101010'}}}}
+    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:'#9E9E9E',backdropColor:'transparent',font:{family:'Montserrat',size:9}},grid:{color:'rgba(0,0,0,.08)'},angleLines:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{family:'Montserrat',size:9,weight:'600'},color:'#101010'}}}}
 });
 
 /* Patent Filings — stacked bar (Tab 1) */
