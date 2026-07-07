@@ -1,0 +1,1247 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UM6P Patent Performance Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2/dist/chartjs-chart-treemap.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font-sans:'Montserrat',-apple-system,'Segoe UI',sans-serif;
+  --orange:#D7492A;--orange-bright:#E24A26;--orange-dark:#A83218;
+  --orange-mid:#E86B4F;--orange-light:#FDF0EC;--orange-pale:#F5C4B8;
+  --dark:#101010;--gray:#757575;--bg-main:#FAFAFA;--card-bg:#fff;
+  --text-main:#101010;--text-sub:#757575;--text-muted:#9E9E9E;
+  --border-color:#E8E8E8;--green:#2D6A4F;--amber:#B45309;--red:#B91C1C;
+  --radius-lg:2px;--radius-md:2px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-main);line-height:1.55;font-size:15px}
+.root{max-width:1140px;margin:0 auto;padding:32px 32px 56px}
+.site-header{background:#fff;padding:0;border-bottom:1px solid var(--border-color)}
+.header-inner{max-width:1140px;margin:0 auto;padding:20px 32px;display:flex;align-items:center;gap:32px}
+.logo-link{flex-shrink:0;display:block;text-decoration:none;color:inherit}
+.um6p-logo{display:flex;flex-direction:column;gap:5px}
+.logo-blocks{display:flex;gap:3px}
+.logo-blocks span{width:34px;height:34px;background:var(--orange);color:#fff;font-weight:800;font-size:1.05rem;display:flex;align-items:center;justify-content:center;line-height:1}
+.logo-name{display:flex;flex-direction:column;line-height:1.28;gap:1px}
+.logo-name span{font-size:.6rem;font-weight:500;color:var(--gray);letter-spacing:.01em}
+.header-text{flex:1;min-width:0;padding-left:32px;border-left:1px solid var(--border-color)}
+.hero-title{font-size:1.5rem;font-weight:700;color:var(--text-main);line-height:1.3;letter-spacing:-.01em}
+.hero-desc{font-size:.88rem;color:var(--text-sub);margin-top:6px;max-width:560px;line-height:1.55;font-weight:400}
+.header-accent{height:3px;background:var(--orange)}
+.disclaimer{font-size:.78rem;color:var(--text-sub);background:#fff;border:1px solid var(--border-color);border-left:3px solid var(--orange);padding:11px 16px;margin-bottom:18px}
+.benchctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.74rem;font-weight:600;color:var(--text-sub);margin:0 0 18px}
+.bench-anchor{margin:0}
+.benchctrl .bc-label{text-transform:uppercase;letter-spacing:.05em;font-weight:700;color:var(--gray)}
+.benchctrl button{font-family:var(--font-sans);font-size:.74rem;font-weight:600;padding:6px 13px;border:1px solid var(--border-color);background:#fff;color:var(--text-sub);cursor:pointer;transition:.15s}
+.benchctrl button:hover{border-color:var(--orange-pale);color:var(--orange)}
+.benchctrl button.on{background:var(--orange);border-color:var(--orange);color:#fff}
+.tabs{display:flex;gap:0;flex-wrap:nowrap;overflow-x:auto;background:#fff;border:1px solid var(--border-color);margin-bottom:32px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--font-sans);font-size:.78rem;padding:14px 18px;border:none;border-bottom:3px solid transparent;cursor:pointer;background:transparent;color:var(--text-sub);font-weight:600;display:flex;align-items:center;gap:7px;transition:.15s;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+.tab:hover{color:var(--orange)}
+.tab.on{color:var(--orange);border-bottom-color:var(--orange);background:var(--orange-light)}
+.tab i{font-size:15px}
+.view{display:none}
+.view.on{display:block;animation:f .2s ease}
+@keyframes f{from{opacity:0}to{opacity:1}}
+.section-kicker{font-size:.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.subq{font-size:1.1rem;font-weight:700;color:var(--text-main);margin-bottom:22px;line-height:1.4;letter-spacing:-.01em}
+.leadWrap{margin-bottom:28px}
+.supLabel{font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;margin:0 0 14px;padding-bottom:10px;border-bottom:2px solid var(--orange)}
+.supGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:28px}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;position:relative;display:flex;flex-direction:column}
+.card.lead{border-top:3px solid var(--orange)}
+.card.sup{border-top:2px solid var(--orange-pale)}
+.card-t{font-size:1rem;font-weight:700;margin:0 0 10px;display:flex;align-items:flex-start;gap:7px;color:var(--text-main);text-transform:uppercase;letter-spacing:.02em;line-height:1.35}
+.card.sup .card-t{font-size:.9rem}
+.info-ic{color:var(--text-muted);font-size:13px;cursor:help;flex-shrink:0;margin-top:2px}
+.bigstat{font-size:1.7rem;font-weight:800;line-height:1.05;color:var(--text-main);letter-spacing:-.01em}
+.card.sup .bigstat{font-size:1.4rem}
+.insight{font-size:.84rem;color:var(--text-sub);margin-top:14px;padding-top:14px;border-top:1px solid var(--border-color);line-height:1.6;font-weight:400}
+.chartwrap{position:relative;width:100%;height:170px;margin-top:12px}
+.card.sup .chartwrap{height:120px}
+.statusbadge{align-self:flex-end;margin-top:12px;font-size:.62rem;font-weight:700;padding:4px 9px;border-radius:0;letter-spacing:.05em;text-transform:uppercase;line-height:1.3}
+.sb-avail{background:#E8F5EE;color:var(--green)}
+.sb-illus{background:var(--orange-light);color:var(--orange-dark)}
+.tileGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
+.benchwrap{margin-top:14px}
+.benchrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.benchlab{font-size:.78rem;font-weight:600;width:130px;flex-shrink:0;color:var(--text-sub)}
+.card.sup .benchlab{width:96px}
+.benchbarbg{flex:1;background:#EFEFEF;border-radius:0;height:14px;overflow:hidden;position:relative}
+.benchbarfill{height:14px;min-width:2px;transition:width .35s ease}
+.benchout{font-size:.74rem;font-weight:700;color:var(--text-main);width:60px;text-align:right;flex-shrink:0}
+.benchcaption{font-size:.7rem;color:var(--text-muted);margin-top:2px}
+.target-dash{position:absolute;top:-3px;height:20px;border-left:2px dashed #757575;pointer-events:none}
+.radarwrap{position:relative;width:100%;height:400px;margin-top:8px}
+.statpair{display:flex;gap:28px;align-items:flex-end;margin-bottom:8px}
+.statpair .sp-v{font-size:1.7rem;font-weight:800;line-height:1;color:var(--orange);letter-spacing:-.01em}
+.statpair .sp-l{font-size:.75rem;color:var(--text-sub);margin-top:4px;font-weight:500}
+.tile{background:var(--card-bg);border:1px solid var(--border-color);padding:20px 22px;cursor:pointer;transition:.15s;border-left:4px solid var(--border-color)}
+.tile:hover{box-shadow:0 4px 14px rgba(0,0,0,.06);transform:translateY(-1px)}
+.tile.tile-g{background:#F0F9F4;border-color:#B8DFC9;border-left-color:var(--green)}
+.tile.tile-a{background:#FFFBEB;border-color:#F0D78C;border-left-color:var(--amber)}
+.tile.tile-r{background:#FEF2F2;border-color:#FECACA;border-left-color:var(--red)}
+.tile.tile-g:hover{border-color:var(--green)}
+.tile.tile-a:hover{border-color:var(--amber)}
+.tile.tile-r:hover{border-color:var(--red)}
+.tile-l{font-size:.68rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.tile-v{font-size:1.25rem;font-weight:800;color:var(--text-main);letter-spacing:-.01em;line-height:1.25}
+.tile-verdict{font-size:.8rem;color:var(--text-sub);margin-top:10px;line-height:1.5;font-weight:500}
+.legend-swatch{display:inline-block;width:16px;height:16px;border-radius:2px;margin-right:7px;vertical-align:-3px;border:1px solid}
+.legend-swatch.lg{background:#F0F9F4;border-color:var(--green)}
+.legend-swatch.la{background:#FFFBEB;border-color:var(--amber)}
+.legend-swatch.lr{background:#FEF2F2;border-color:var(--red)}
+.legend-bar{display:flex;gap:20px;align-items:center;font-size:.78rem;color:var(--text-sub);margin-top:22px;padding:16px 0;border-top:1px solid var(--border-color);flex-wrap:wrap}
+.card.clickable{cursor:pointer;transition:.15s}
+.card.clickable:hover{border-color:var(--orange-pale);box-shadow:0 4px 16px rgba(215,73,42,.08)}
+.drill-hint{font-size:.75rem;color:var(--orange);font-weight:600;margin-top:12px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.03em}
+/* Visual Funnel */
+.vf-section{margin-top:32px;padding-top:24px;border-top:2px solid var(--orange)}
+.vf-label{font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px}
+.vf-container{display:flex;flex-direction:column;align-items:center;gap:2px}
+.vf-stage{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;color:#fff;transition:.15s}
+.vf-stage:hover{filter:brightness(1.08)}
+.vf-meta{display:flex;flex-direction:column;gap:2px}
+.vf-n{font-size:1.35rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+.vf-l{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.9}
+.vf-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.vf-badge{font-size:.58rem;font-weight:700;padding:2px 6px;letter-spacing:.04em;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;display:inline-block}
+.vf-conv{font-size:.68rem;font-weight:700;color:var(--text-muted);text-align:center;padding:3px 0;letter-spacing:.02em}
+/* Comm rate viz */
+.comm-progress-wrap{margin:14px 0 6px}
+.comm-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-muted);margin-bottom:5px}
+.comm-bar-bg{background:#EFEFEF;height:14px;position:relative;overflow:visible}
+.comm-bar-fill{height:14px;transition:width .4s ease}
+.comm-stats{display:flex;gap:24px;margin-top:14px}
+.comm-stat-v{font-size:1.2rem;font-weight:800;color:var(--orange)}
+.comm-stat-l{font-size:.72rem;color:var(--text-sub);margin-top:2px}
+/* Country treemap legend */
+.ctm-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.74rem;color:var(--text-sub);margin-top:12px}
+.ctm-legend span{display:flex;align-items:center;gap:6px}
+.ctm-legend i{width:12px;height:12px;border-radius:2px;display:inline-block}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(16,16,16,.55);z-index:2000;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;width:100%;max-width:680px;max-height:84vh;overflow-y:auto;padding:28px;box-shadow:0 12px 40px rgba(0,0,0,.18);position:relative;border-top:3px solid var(--orange)}
+.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:1px solid var(--border-color);font-size:17px;color:var(--text-sub);cursor:pointer;width:32px;height:32px}
+.modal-close:hover{background:var(--orange);border-color:var(--orange);color:#fff}
+.modal-badge{font-size:.62rem;font-weight:700;padding:4px 9px;display:inline-block;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.modal-title{font-size:1.15rem;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.modal-sub{font-size:.85rem;color:var(--text-sub);margin-bottom:16px}
+.dive-table{width:100%;border-collapse:collapse;font-size:.84rem}
+.dive-table th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);padding:9px 10px;border-bottom:2px solid var(--dark);font-weight:700}
+.dive-table td{padding:9px 10px;border-bottom:1px solid var(--border-color)}
+.dive-table tr:hover td{background:var(--orange-light)}
+.dive-rank{font-weight:800;color:var(--orange);width:26px}
+@media(max-width:768px){
+  .root{padding:0 16px 36px}
+  .header-inner{padding:16px;flex-direction:column;align-items:flex-start;gap:16px}
+  .header-text{padding-left:0;border-left:none;padding-top:12px;border-top:1px solid var(--border-color)}
+  .hero-title{font-size:1.2rem}
+  .tileGrid{grid-template-columns:1fr}
+  .vf-stage{padding:9px 14px}
+}
+</style>
+</head>
+<body>
+<div class="site-header">
+  <div class="header-inner">
+    <a class="logo-link" href="https://www.um6p.ma/fr/um6p/a-propos-de-l-universite" target="_blank" rel="noopener" title="University Mohammed VI Polytechnic">
+      <div class="um6p-logo">
+        <div class="logo-blocks" aria-hidden="true"><span>U</span><span>M</span><span>6</span><span>P</span></div>
+        <div class="logo-name"><span>University</span><span>Mohammed VI</span><span>Polytechnic</span></div>
+      </div>
+    </a>
+    <div class="header-text">
+      <h1 class="hero-title">Patent Performance Dashboard</h1>
+      <p class="hero-desc">Is UM6P building a patent portfolio that is high-quality, well-protected, globally extended, and generating economic value?</p>
+    </div>
+  </div>
+  <div class="header-accent"></div>
+</div>
+<div class="root">
+  <div class="tabs" id="tabbar"></div>
+
+  <!-- TAB 0: OVERVIEW -->
+  <div class="view on" id="tab0">
+    <div class="section-kicker">At a Glance</div>
+    <div class="subq">Where is the portfolio strong, and where is it stalling?</div>
+    <div class="card lead" style="margin-bottom:24px">
+      <span class="statusbadge sb-avail">Tracked now</span>
+      <div class="card-t">Patent Quality &amp; Impact vs Regional Peers <i class="ti ti-info-circle info-ic" title="Six quality/impact metrics — UM6P vs a selected peer (toggle: Morocco / Tunisia / South Africa). Each axis is normalised so the strongest of the four reaches 100; hover for the raw value. Covers only the internationally-tracked subset (~28 UM6P patents), so read it as directional. Volume, themes and coverage elsewhere use the full 426-patent inventory."></i></div>
+      <div class="bench-anchor"></div>
+      <div class="radarwrap"><canvas id="cRadar"></canvas></div>
+      <div class="insight" id="radarInsight">UM6P vs regional peers on patent quality and impact (internationally-tracked subset).</div>
+    </div>
+    <div class="supLabel">Leading indicators by tab</div>
+    <div class="tileGrid" id="execTiles"></div>
+    <div class="legend-bar">
+      <span><span class="legend-swatch lg"></span>On or above target</span>
+      <span><span class="legend-swatch la"></span>Below target</span>
+      <span><span class="legend-swatch lr"></span>Significant gap</span>
+    </div>
+  </div>
+
+  <!-- TAB 1: SCALE & MOMENTUM -->
+  <div class="view" id="tab1">
+    <div class="subq">Is patent filing activity accelerating, and is the pipeline healthy?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openDive('netFilings')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patent Filings <i class="ti ti-info-circle info-ic" title="New patent applications filed per year, split by originating institution."></i></div>
+        <div class="chartwrap" style="height:200px"><canvas id="cFilings"></canvas></div>
+        <div class="insight">25 filings in 2025 — the strongest year since 2015. Growth has been driven increasingly by UM6P's own TTO, with MAScIR's historical dominance gradually balanced by newer labs. Three consecutive up-years signal a sustainable acceleration rather than a one-off spike.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 10 most recent filings</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="bench-anchor"></div>
+    <div class="supGrid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Annual Filing Growth <i class="ti ti-info-circle info-ic" title="Patent applications filed each year over the last four years, and the compound annual growth rate across them."></i></div>
+        <div class="bigstat" id="statCagr" style="color:var(--green)">+14%/yr</div>
+        <div class="chartwrap" style="height:110px"><canvas id="cFilingTrend"></canvas></div>
+        <div class="insight">Three straight up-years signal durable momentum, not a one-off — but examination and prosecution capacity must scale with the pipeline, or the grant backlog will grow faster than the portfolio.</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('researchers')">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Patent Output per Researcher <i class="ti ti-info-circle info-ic" title="Patent applications filed per 100 active researchers — normalizes output to institution size."></i></div>
+        <div class="bigstat">~3.4 / 100 staff</div>
+        <div class="benchwrap" data-target="filingsRes"></div>
+        <div class="insight">Output is concentrated in a few prolific inventors, so the headline rate is fragile — if one or two leave, it drops sharply. The priority is widening the inventor base, not pushing the top names harder. Open the drill-down to see who is carrying the portfolio today.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Top 10 researchers by output</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('timeToGrant')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Time to Patent Grant <i class="ti ti-info-circle info-ic" title="Average time in years from filing an application to the patent office granting it."></i></div>
+        <div class="bigstat">~1.8 years</div>
+        <div class="insight">Grant speed is not the bottleneck — most applications clear in under two years. The few 3–4 year cases are the ones to chase down individually; the deeper risk is filings sitting un-prosecuted, not slow examination.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 slowest-to-grant patents</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Annual Invention Disclosures <i class="ti ti-info-circle info-ic" title="Raw ideas formally submitted by researchers to the TTO before any patent filing — the top of the innovation pipeline."></i></div>
+        <div class="bigstat">~142 / yr</div>
+        <div class="benchwrap" data-target="disclosures"></div>
+        <div class="insight">Disclosures are the top of the pipeline — if this number stalls, filings stall two years later. The gap to target is best closed through inventor awareness and faculty incentives, not more TTO staff.</div>
+      </div>
+    </div>
+
+    <!-- VISUAL FUNNEL -->
+    <div class="vf-section">
+      <div class="vf-label">Research-to-License Pipeline — Cumulative All-Time</div>
+      <div class="card lead">
+        <div class="card-t">Idea-to-Revenue Funnel <i class="ti ti-info-circle info-ic" title="Cumulative all-time counts at each stage of the innovation pipeline — not time-bound. Illustrative stages use TTO estimates."></i></div>
+        <div class="vf-container" style="margin:16px 0">
+          <div class="vf-stage" style="width:100%;background:#9B3520">
+            <div class="vf-meta"><div class="vf-n">~1,200</div><div class="vf-l">Active Research Projects</div></div>
+            <div class="vf-right"><span class="vf-badge">Illustrative</span></div>
+          </div>
+          <div class="vf-conv">↓ ~53% disclose</div>
+          <div class="vf-stage" style="width:90%;background:#B93E27">
+            <div class="vf-meta"><div class="vf-n">~640</div><div class="vf-l">Inventions Disclosed to TTO</div></div>
+            <div class="vf-right"><span class="vf-badge">Illustrative</span></div>
+          </div>
+          <div class="vf-conv">↓ ~67% filed</div>
+          <div class="vf-stage" style="width:78%;background:#D7492A">
+            <div class="vf-meta"><div class="vf-n" id="funnelFiled">426</div><div class="vf-l">Patent Applications Filed</div></div>
+            <div class="vf-right"><span class="vf-badge" style="background:rgba(255,255,255,.35)">Tracked now</span></div>
+          </div>
+          <div class="vf-conv" id="funnelConvGrant">↓ ~66% granted</div>
+          <div class="vf-stage" style="width:65%;background:#E86B4F">
+            <div class="vf-meta"><div class="vf-n" id="funnelGranted">—</div><div class="vf-l">Patents Granted / Maintained</div></div>
+            <div class="vf-right"><span class="vf-badge" style="background:rgba(255,255,255,.35)">Tracked now</span></div>
+          </div>
+          <div class="vf-conv">↓ ~6% licensed</div>
+          <div class="vf-stage" style="width:50%;background:#2D6A4F">
+            <div class="vf-meta"><div class="vf-n">~18</div><div class="vf-l">Licenses Granted</div></div>
+            <div class="vf-right"><span class="vf-badge">Illustrative</span></div>
+          </div>
+        </div>
+        <div class="insight">The funnel narrows sharply at two points: disclosure (only ~53% of research projects surface as formal inventions) and licensing (only ~6% of granted patents reach a commercial partner). Filing-to-grant efficiency is comparatively strong. The TTO's highest-leverage interventions are upstream (inventor awareness) and downstream (active licensing outreach).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: RESEARCH THEMES -->
+  <div class="view" id="tab2">
+    <div class="subq">Where is UM6P's patent activity concentrated — and does it match our research strategy?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openSelect('theme')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patent Portfolio by Research Theme <i class="ti ti-info-circle info-ic" title="Share of the portfolio in each research theme. Box size = share of total filings."></i></div>
+        <div class="chartwrap" style="height:240px"><canvas id="cTreemap"></canvas></div>
+        <div class="insight">Environmental Tech &amp; Digital Mining dominates the portfolio, reflecting UM6P's deep roots in phosphate and mining sciences.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Pick a theme to see its latest 10 patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-illus">Targets illustrative</span>
+        <div class="card-t">Portfolio vs Declared Strategy <i class="ti ti-info-circle info-ic" title="Each theme's share of the portfolio minus a strategic weight for that theme. The strategic weights are PLACEHOLDER assumptions — UM6P has not yet provided a declared R&D allocation — so the gap direction is indicative only until real targets are supplied."></i></div>
+        <div class="chartwrap"><canvas id="cAlignGap"></canvas></div>
+        <div class="insight">Where the portfolio over- or under-weights each theme versus strategy. The targets are still placeholders — once UM6P sets a real R&D allocation, this becomes the single clearest map of where to add or pull back filing effort.</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('commByTheme')">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Commercial Success by Research Theme <i class="ti ti-info-circle info-ic" title="Share of each theme's patents that are on a live licensing or commercialization path."></i></div>
+        <div class="chartwrap" style="height:140px"><canvas id="cCommByTheme"></canvas></div>
+        <div class="insight">Illustrative placeholder — not computed from TTO licensing data. Awaiting the deal registry before this can be read alongside the tracked charts.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Top licensed patents per theme</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('citeByTheme')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Forward Citations by Theme <i class="ti ti-info-circle info-ic" title="Total forward citations per theme across the ~25-patent international citation sample. The sample is small and skews to internationally-indexed families, so it shows where citations land — not a full-portfolio quality ranking."></i></div>
+        <div class="chartwrap" style="height:140px"><canvas id="cCiteByTheme"></canvas></div>
+        <div class="insight">Which themes are already drawing external attention. Citations cluster where UM6P files internationally — a hint of where global commercial interest is most likely to follow.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Most-cited patents in the sample</div>
+      </div>
+    </div>
+
+    <!-- THEME MOMENTUM -->
+    <div class="vf-section">
+      <div class="vf-label">Where the portfolio is heading — filings by theme over time</div>
+      <div class="card lead">
+        <div class="card-t">Research Theme Momentum <i class="ti ti-info-circle info-ic" title="Patent filings per theme per year. Unlike the treemap (a current snapshot), this shows the portfolio's direction of travel — which themes are accelerating and which are flat."></i></div>
+        <div class="chartwrap" style="height:260px"><canvas id="cThemeMomentum"></canvas></div>
+        <div class="insight" id="momentumInsight">Filings per theme per year — the shape shows whether UM6P's patenting is shifting between research areas over time.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: GLOBAL COVERAGE -->
+  <div class="view" id="tab3">
+    <div class="subq">How well-protected is the portfolio internationally, and where are patents active?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openSelect('country')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patent Filing Countries <i class="ti ti-info-circle info-ic" title="Each of the 426 applications is counted once by its primary filing route. Boxes sum to the full portfolio. A missing filing country is shown as a data gap, not assumed domestic."></i></div>
+        <div class="chartwrap" style="height:300px"><canvas id="cCountryTreemap"></canvas></div>
+        <div class="insight">Morocco dominates by filing route — UM6P protects its inventions where it invents, not where its technologies compete. International and multi-country routes remain a small minority.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Pick a country to see its latest 10 patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="bench-anchor"></div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">International Filing Rate <i class="ti ti-info-circle info-ic" title="Share of patent applications extended beyond Morocco through the PCT system or direct foreign filing."></i></div>
+        <div class="bigstat" id="statPctIntl" style="color:var(--red)">8%</div>
+        <div class="insight" id="intlInsight">Only a small share of UM6P's applications are filed beyond Morocco. The rest stay domestic and cannot be enforced in any foreign market. A default PCT policy for technologies with export potential would move this metric fastest.</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('triadicList')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Top-Market Patent Coverage <i class="ti ti-info-circle info-ic" title="Share of patents filed in Europe, the US and Japan simultaneously — the global gold standard for commercial-grade protection."></i></div>
+        <div class="bigstat" style="color:var(--amber)">~0%</div>
+        <div class="insight">Near-zero tri-market coverage (EU + US + Japan). Rather than viewing this as a failure, it points to a specific action: curate a shortlist of the 5–10 inventions with genuine global commercial potential and fund their international extension. One strong triadic patent is worth more than 50 domestic ones.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Closest-to-triadic candidates</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('renewal')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patent Portfolio Survival Rate <i class="ti ti-info-circle info-ic" title="Share of patents in the MAScIR renewal registry still paying annuities. Does not cover newer UM6P TTO patents, which are not yet in that registry."></i></div>
+        <div class="bigstat" id="statRenewal" style="color:var(--green)">~97%</div>
+        <div class="insight">Nearly all patents in the MAScIR renewal registry are still being maintained — owners overwhelmingly believe they retain option value. The flip side: a high renewal rate on an overwhelmingly domestic portfolio means money is being spent to protect assets that cannot be enforced in the markets where they matter most.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 longest-active patents</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Average Remaining Patent Life <i class="ti ti-info-circle info-ic" title="Average years left before expiry (patents expire 20 years after filing) across granted/active patents with a known filing date. Shorter remaining life = sooner the protection — and any licensing value — runs out."></i></div>
+        <div class="bigstat" id="statRemLife">~9.8 yrs</div>
+        <div class="insight" id="remLifeInsight">Average years of protection left on the active portfolio.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PORTFOLIO QUALITY -->
+  <div class="view" id="tab4">
+    <div class="subq">How does UM6P's patent quality and impact compare to regional peers?</div>
+    <div class="disclaimer" style="border-left-color:var(--green)"><i class="ti ti-info-circle" style="vertical-align:-2px"></i> This tab compares UM6P with <b>Morocco, Tunisia and South Africa averages</b>. It covers only the <b>internationally-tracked subset</b> (~28 UM6P patents, not the full 426) and rests on small samples — so read it as <b>directional</b>. Use the <b>Compare against</b> control to switch the peer. <span class="bench-anchor" style="display:inline"></span></div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openDive('forwardCitations')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">High-Impact Patents (top-10% most cited) <i class="ti ti-info-circle info-ic" title="Share of the institution's patents that rank in the top 10% most-cited for their field and cohort — the cleanest cross-country measure of technological impact. UM6P and peer values cover the internationally-tracked subset."></i></div>
+        <div class="statpair">
+          <div><div class="sp-v" id="statTopImpact">5%</div><div class="sp-l">in the top-10% most cited</div></div>
+          <div><div class="sp-v">0.8</div><div class="sp-l">avg forward cites (~25 patents)</div></div>
+          <div><div class="sp-v">&lt;4 yrs</div><div class="sp-l">median patent age</div></div>
+        </div>
+        <div class="benchwrap" data-bench="topImpact"></div>
+        <div class="insight" id="impactInsight">UM6P's high-impact share trails the regional average — but the portfolio's median patent is under four years old, and citations take 5–7 years to mature. The real test comes in 2027–2028 as the 2021–2023 cohort ages.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 10 most-cited patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting — UM6P vs <span class="bench-ref">Morocco avg</span></div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Originality <i class="ti ti-info-circle info-ic" title="How broadly a patent draws on diverse technology fields in its cited references (0–1; higher = more cross-domain). UM6P vs the selected country average, internationally-tracked subset."></i></div>
+        <div class="bigstat" id="statOrig">0.63</div>
+        <div class="benchwrap" data-bench="origIndex"></div>
+        <div class="insight" id="origInsight">UM6P's originality is roughly mid-pack regionally — neither a standout nor a weakness on this measure.</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('techBreadth')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Technology Scope <i class="ti ti-info-circle info-ic" title="How broadly a patent spans distinct technology fields (0–1; higher = broader). UM6P vs the selected country average. The drill-down lists the broadest UM6P families by distinct technology classes."></i></div>
+        <div class="bigstat" id="statScope">0.34</div>
+        <div class="benchwrap" data-bench="scope"></div>
+        <div class="insight" id="scopeInsight">UM6P is on par with — or slightly above — the regional average on technology scope. The drill-down shows the broadest individual families.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 broadest patents by IPC classes</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Science Linkage (NPL citations) <i class="ti ti-info-circle info-ic" title="Average non-patent-literature (scientific) citations per patent — how directly inventions cite academic science. UM6P vs the selected country average. Near-zero across the whole region, so this is an ecosystem pattern, not UM6P-specific."></i></div>
+        <div class="bigstat" id="statSciProx">0.01</div>
+        <div class="benchwrap" data-bench="sciProx"></div>
+        <div class="insight" id="sciInsight">UM6P cites almost no scientific literature directly — but so does the rest of the region (all near zero). It's an ecosystem pattern. A lever: encourage inventors to cite the underlying papers, which also strengthens patent validity.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: COMMERCIALIZATION -->
+  <div class="view" id="tab5">
+    <div class="subq">Is UM6P's IP generating commercial value, or sitting on the shelf?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openDive('commercialization')">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Active Commercialization Rate <i class="ti ti-info-circle info-ic" title="Share of active patents on a live licensing, option, or commercial partnership path."></i></div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin:10px 0 4px">
+          <div style="font-size:2.6rem;font-weight:800;color:var(--amber);letter-spacing:-.02em">17%</div>
+          <div style="font-size:.88rem;color:var(--text-sub);line-height:1.4">of patent portfolio<br>on a live commercial path</div>
+        </div>
+        <div class="comm-progress-wrap">
+          <div class="comm-labels"><span>0%</span><span style="color:var(--gray);font-weight:700">▲ UM6P Target: 30%</span><span>50%</span></div>
+          <div class="comm-bar-bg">
+            <div class="comm-bar-fill" style="width:34%;background:var(--amber)"></div>
+            <div class="target-dash" style="left:60%"></div>
+          </div>
+        </div>
+        <div class="comm-stats">
+          <div><div class="comm-stat-v">~72</div><div class="comm-stat-l">patents on a live path</div></div>
+          <div><div class="comm-stat-v" style="color:var(--text-muted)">~354</div><div class="comm-stat-l">currently dormant</div></div>
+          <div><div class="comm-stat-v" style="color:var(--green)">30%</div><div class="comm-stat-l">UM6P target</div></div>
+        </div>
+        <div class="insight">17% on a live commercial path is below the internal target of 30% — normal for a portfolio of this age, but the gap is real. The priority is not to file more patents but to actively work the existing 354 dormant ones: triage which have commercial potential, and match them to industry partners before the renewal cost outweighs the option value.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 5 actively licensed patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="bench-anchor"></div>
+    <div class="supGrid">
+      <div class="card sup clickable" onclick="openDive('dealsList')">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Licensing Agreements Signed <i class="ti ti-info-circle info-ic" title="Licence or option agreements signed with companies per year."></i></div>
+        <div class="bigstat">~6 / yr</div>
+        <div class="benchwrap" data-target="deals"></div>
+        <div class="insight">~6 deals per year against a target of 15 — the bottleneck is outreach and deal-making capacity, not the size of the portfolio. MIT closes 137 deals per year with a team of over 50 licensing professionals; UM6P's gap is structural, not strategic.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Top 5 recent deals</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Annual IP Revenue <i class="ti ti-info-circle info-ic" title="Total annual royalties and equity income from licensed patents and spin-out stakes."></i></div>
+        <div class="bigstat">~$180K / yr</div>
+        <div class="benchwrap" data-target="income"></div>
+        <div class="insight">~$180K/yr is pre-commercial in scale — less than the annual cost of maintaining the full patent portfolio. This is expected at this stage, but the revenue trajectory matters: a single well-negotiated licence to OCP or a multinational agrochemical firm could move the number by an order of magnitude.</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Revenue per Active Patent <i class="ti ti-info-circle info-ic" title="Annual licensing income divided by the number of active patents — a size-adjusted yield for cross-lab comparison."></i></div>
+        <div class="bigstat">~$620</div>
+        <div class="benchwrap" data-target="incomePerPatent"></div>
+        <div class="insight">~$620 per active patent per year — well below the $2,000 target. The metric is most useful not as an absolute number but broken down by lab and research theme: surface the patents generating $0 that are still incurring renewal fees, and those are the divestiture or out-licensing candidates.</div>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO PRUNING (real, tracked) -->
+    <div class="vf-section">
+      <div class="vf-label">The other side of value — what is the portfolio costing to keep?</div>
+      <div class="card lead clickable" onclick="openDive('pruning')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Portfolio Pruning Candidates <i class="ti ti-info-circle info-ic" title="Patents that are 10+ years old, protected only in Morocco, and still being maintained. Older patents incur rising annuity fees; domestic-only ones cannot be enforced abroad. These are the first candidates to review for letting lapse — freeing budget for international extension of higher-value patents."></i></div>
+        <div style="display:flex;align-items:baseline;gap:14px;margin:10px 0 4px">
+          <div style="font-size:2.6rem;font-weight:800;color:var(--orange);letter-spacing:-.02em" id="pruneStat">—</div>
+          <div style="font-size:.88rem;color:var(--text-sub);line-height:1.4">old, domestic-only patents<br>still being maintained</div>
+        </div>
+        <div class="insight" id="pruneInsight">Commercialization is one half of portfolio value; maintenance cost is the other. Each of these patents is 10+ years old, enforceable only in Morocco, and still paying annuities — review them against their renewal cost and free that budget to extend higher-value patents abroad.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> 10 oldest pruning candidates</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 6: INDUSTRIAL PARTNERSHIP & VENTURES -->
+  <div class="view" id="tab6">
+    <div class="subq">How is UM6P building industry relationships through IP, and is it creating new ventures?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openDive('partnerTrend')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Industry Concentration Index <i class="ti ti-info-circle info-ic" title="Herfindahl-Hirschman Index (HHI) of co-filing partners: 0 = perfectly diversified, 1 = a single partner. Chart shows annual co-filings by partner type. Caveat: filings tagged with an OCP framework reference are counted as OCP-linked, which may over-state true OCP co-ownership."></i></div>
+        <div class="chartwrap" style="height:200px"><canvas id="cPartnerTrend"></canvas></div>
+        <div style="display:flex;gap:24px;margin-top:12px;align-items:baseline">
+          <div><div id="statHhi" style="font-size:2rem;font-weight:800;color:var(--orange);letter-spacing:-.01em">0.58</div><div style="font-size:.72rem;color:var(--text-sub)">concentration index (HHI)</div></div>
+          <div style="font-size:.8rem;color:var(--text-sub);line-height:1.4">An HHI above 0.5 indicates a <b>highly concentrated</b> partnership base — most industry co-filings run through one partner.</div>
+        </div>
+        <div class="insight">Industry co-filing is highly concentrated in a single partner. That dependency means the portfolio's commercial routes remain tied to one partner's R&D budget and strategic priorities. Adding two or three new industrial co-inventors would materially reduce this risk.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Top 5 OCP co-owned patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="bench-anchor"></div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Industry–Academia Collaboration <i class="ti ti-info-circle info-ic" title="Every patent classified by co-filer: jointly filed with an industry partner (OCP or another company), with another university, or filed independently by UM6P with no external co-filer."></i></div>
+        <div class="chartwrap" style="height:150px"><canvas id="cCollabMix"></canvas></div>
+        <div class="insight" id="collabInsight">How UM6P collaborates through IP.</div>
+      </div>
+      <div class="card sup clickable" onclick="openDive('spinoffsList')">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Spin-off Companies Created <i class="ti ti-info-circle info-ic" title="New companies founded each year based on UM6P patents."></i></div>
+        <div class="bigstat">~2 / yr</div>
+        <div class="insight">Illustrative — awaiting a venture registry. ~2 spin-offs/year is typical for a young ecosystem; a dedicated pre-incubation programme for patent-backed ventures could lift it materially over three years.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> UM6P spin-off companies</div>
+      </div>
+      <div class="card sup">
+        <span class="statusbadge sb-illus">Illustrative</span>
+        <div class="card-t">Patent-to-Startup Conversion <i class="ti ti-info-circle info-ic" title="Share of granted patents that have been licensed to a newly formed startup rather than an established firm."></i></div>
+        <div class="bigstat">~9%</div>
+        <div class="benchwrap" data-target="startups"></div>
+        <div class="insight">~9% of patents finding their way to startups against a target of 15% — the licensing pathway currently favours established partners (primarily OCP) over new venture formation. This is partly a market structure issue: Morocco has fewer early-stage investors than startup-rich ecosystems. The TTO can partially compensate by actively seeking international deep-tech investors for the most promising patents.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 7: LABS & INVENTORS -->
+  <div class="view" id="tab7">
+    <div class="subq">Which labs and inventors are generating UM6P's patent portfolio?</div>
+    <div class="leadWrap">
+      <div class="card lead clickable" onclick="openSelect('lab')">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Patents by Lab / Hub, by Status <i class="ti ti-info-circle info-ic" title="Patents per originating lab or hub, broken down by legal status (granted/active, pending, lapsed/rejected, status not recorded). MAScIR and the OCP/CERPHOS legacy centres hold the historical portfolio; newer UM6P labs are mostly still pending."></i></div>
+        <div class="chartwrap" style="height:300px"><canvas id="cLabs"></canvas></div>
+        <div class="insight">The legacy MAScIR portfolio is largely granted, while the newer UM6P labs are still mostly pending — a sign the in-house pipeline hasn't yet converted to grants. A large "status not recorded" block in any lab is a data-hygiene action, not necessarily a weak portfolio.</div>
+        <div class="drill-hint"><i class="ti ti-list-search"></i> Pick a lab to see its latest 10 patents</div>
+      </div>
+    </div>
+    <div class="supLabel">Supporting</div>
+    <div class="supGrid">
+      <div class="card sup">
+        <span class="statusbadge sb-avail">Tracked now</span>
+        <div class="card-t">Most Active Inventors / PIs <i class="ti ti-info-circle info-ic" title="Patent count per named inventor / principal investigator, with their main lab. A patent is credited to each of its listed inventors. Co-inventor strings separated by commas may appear as a single entry — a data-cleaning caveat."></i></div>
+        <div class="chartwrap" style="height:300px"><canvas id="cInventors"></canvas></div>
+        <div class="insight">A handful of inventors drive most filings — a key-person dependency. Broadening the inventor base is what makes filing growth durable; a lab that publishes heavily but rarely files is the clearest place to push inventor-awareness next.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend-bar" style="margin-top:24px">
+    <span><span style="display:inline-block;width:12px;height:12px;background:var(--orange);border-radius:1px;margin-right:6px;vertical-align:-2px"></span>Leading indicator</span>
+    <span><span style="display:inline-block;width:12px;height:12px;background:var(--orange-pale);border-radius:1px;margin-right:6px;vertical-align:-2px"></span>Supporting indicator</span>
+    <span><span class="sb-avail" style="padding:2px 8px;font-weight:700">Tracked now</span> verified data</span>
+    <span><span class="sb-illus" style="padding:2px 8px;font-weight:700">Illustrative</span> placeholder</span>
+    <span><i class="ti ti-list-search" style="vertical-align:-2px"></i> Click cards with drill hints for ranked lists</span>
+  </div>
+</div>
+
+<div id="benchctrl" class="benchctrl">
+  <span class="bc-label">Compare against</span>
+  <button data-k="morocco" class="on" onclick="setBench('morocco')">Morocco average</button>
+  <button data-k="tunisia" onclick="setBench('tunisia')">Tunisia average</button>
+  <button data-k="southafrica" onclick="setBench('southafrica')">South Africa average</button>
+</div>
+
+<div class="modal-overlay" id="diveModal" onclick="closeDive()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeDive()">&times;</button>
+    <span class="modal-badge sb-illus" id="diveBadge">Illustrative</span>
+    <div class="modal-title" id="diveTitle">Top patents</div>
+    <div class="modal-sub" id="diveSub">Ranked list</div>
+    <table class="dive-table">
+      <thead><tr id="diveHead"></tr></thead>
+      <tbody id="diveBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" id="selModal" onclick="closeSel()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeSel()">&times;</button>
+    <span class="modal-badge sb-avail">Tracked now</span>
+    <div class="modal-title" id="selTitle">Browse patents</div>
+    <div class="modal-sub" id="selSub">Select a category to view its latest 10 patents</div>
+    <div style="margin:14px 0 18px">
+      <label id="selLabel" style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray);margin-right:10px"></label>
+      <select id="selDropdown" onchange="renderSel()" style="font-family:var(--font-sans);font-size:.9rem;font-weight:600;padding:8px 12px;border:1px solid var(--border-color);background:#fff;color:var(--text-main);min-width:260px;cursor:pointer"></select>
+    </div>
+    <table class="dive-table">
+      <thead><tr id="selHead"></tr></thead>
+      <tbody id="selBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* Auto-generated from Files 3-8 - run scripts/build_dashboard_data.ps1 to refresh */
+var DASH_DATA = {"generated":"2026-07-07","totalPatents":426,"filingsUndated":154,"filingsDated":272,"filings2025":25,"filings2024":18,"filings2026":9,"cagr":14,"cagrFrom":17,"cagrTo":25,"pctRate":8,"grantRate":47,"grantedCount":201,"avgGrantLag":1.8,"renewalRate":97,"renewalTotal":196,"renewalActiveCount":191,"renewalLapsedCount":5,"renewalScope":"MAScIR renewal portfolio (File 5 only)","avgAlignGap":11.6,"strategyTargetVals":[20,22,18,20,15],"alignShareVals":[45,12,25,12,7],"avgCites":0.8,"pctCited":24,"avgIpc":1.7,"triadicShare":0,"ocpShare":70,"hhi":0.58,"filingsYears":[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"yearMin":2010,"yearMax":2026,"filingsMascir":[1,6,14,21,28,31,21,16,8,12,9,10,10,4,0,0,0],"filingsTto":[0,0,0,0,0,0,0,0,2,3,1,4,7,12,18,25,9],"filingsOther":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"treemap":[{"value":44,"label":"Environmental Tech \u0026 Digital Mining"},{"value":12,"label":"Sustainable Agriculture"},{"value":25,"label":"Mineral Processing"},{"value":12,"label":"Circular Chemistry"},{"value":7,"label":"Energy \u0026 Storage"}],"alignLabels":["Env. Tech \u0026 Mining","Sust. Agriculture","Mineral Processing","Circular Chemistry","Energy \u0026 Storage"],"alignVals":[25,-10,7,-8,-8],"citeThemeLabels":["Env. Tech \u0026 Mining","Sust. Agriculture","Mineral Processing","Circular Chemistry","Energy \u0026 Storage"],"citeThemeVals":[5,2,4,0,0],"citeMatchedVals":[8,2,5,2,0],"citeMatchedTotal":17,"citeSampleTotal":25,"countryTreemap":[{"label":"Morocco (national)","value":171,"kind":"dom"},{"label":"Filing country not recorded","value":127,"kind":"gap"},{"label":"Multi-country (international)","value":29,"kind":"multi"},{"label":"Russia","value":25,"kind":"intl"},{"label":"France","value":12,"kind":"intl"},{"label":"China","value":9,"kind":"intl"},{"label":"Brazil","value":7,"kind":"intl"},{"label":"United States","value":5,"kind":"intl"},{"label":"Japan","value":5,"kind":"intl"},{"label":"Germany","value":5,"kind":"intl"},{"label":"Great Britain","value":3,"kind":"intl"},{"label":"Other countries","value":28,"kind":"intl"}],"countryPatents":{"Morocco":[["Système de Génération Évolutionnaire d\u0027Hypothèses de Cybermenaces Guidé…","2026","Sustainable Agriculture"],["MATERIAU DE CATHODE A BASE DE SPINELLE LNMO DOUBLEMENT DOPE EN CUIVRE E…","2026","Energy \u0026 Storage"],["PROCÉDÉ INTÉGRÉ DE RÉCUPÉRATION DU COBALT ET DE RÉGÉNÉRATION ÉLECTROCHI…","2026","Energy \u0026 Storage"],["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","Environmental Tech"],["Procédé de démétallisation de l’acide phosphorique par nanofiltration p…","2026","Mineral Processing"],["PROCEDE DE CARBONISATION CATALYTIQUE DE MATIERES PREMIERES BIOSOURCEES","2026","Circular Chemistry"],["SYSTEME INTEGRE DE CAPTURE DIRECTE DU CO2 DANS L’AIR POUR CENTRALES SOL…","2026","Energy \u0026 Storage"],["MATERIAUX CATHODIQUES LAMELLAIRES POUR BATTERIES LITHIUM-ION REVETUS D’…","2026","Energy \u0026 Storage"],["LIGNINE–ZIF8 COMME ADHESIF BIOSOURCE POUR UN COLLAGE RENFORCE ET PLUS S…","2026","Circular Chemistry"],["Collecteur biosource à base d\u0027huile de graines de cannabis pour une flo…","2025","Circular Chemistry"]],"Filing country not recorded":[["Procédé chimique pour le traitement du minerai de potasse de type carna…","2024","Mineral Processing"],["Kit pour la détection différentielle des variants delta et Omicron du S…","2021","Environmental Tech"],["Dispositif pour le traitement en flux continu des eaux usées","2021","Environmental Tech"],["BATTERIE INTELLIGENTE AVEC SYSTEME DE SURVEILLANCE DE L\u0027ETAT DE SANTE E…","2021","Energy \u0026 Storage"],["BATTERIE AVEC SYSTEME AUTONOME ET INTEGRE DE DIAGNOSTIC","2021","Energy \u0026 Storage"],["Revêtement transparent superhydrophobe et antisalissure exempt de fluor…","2021","Environmental Tech"],["SYSTEME D\u0027ANALYSE IMMUNO-CHROMATOGRAPHIQUE A FLUX LATERAL UTILISANT LES…","2021","Environmental Tech"],["Formulation de cuir végan à base de fibre naturelle","2021","Environmental Tech"],["Système d\u0027estimation de la production de parcelles d\u0027agrumes par imager…","2021","Environmental Tech"],["Extrait d\u0027algue comme materiau d\u0027enrobage biodegaradable pour la libéra…","2021","Sustainable Agriculture"]],"Russia":[["Method of producing calcium fluoride from fluorosilicic acid","—","Environmental Tech"],["Method for phosphogypsum decomposition","—","Environmental Tech"],["METHOD OF CLEANING PHOSPHORIC ACID BY NANOFILTRATION","—","Environmental Tech"],["Phosphoric acid production","—","Environmental Tech"],["CHEMICAL PLANT FOR THE PRODUCTION OF PHOSPHORIC ACID, EQUIPPED WITH A P…","—","Environmental Tech"],["Method for manufacture of ceramic material for accumulation of heat ene…","—","Environmental Tech"],["METHOD FOR OBTAINING SODIUM SULFATE FROM PHOSPHOGYPSUM","—","Environmental Tech"],["Method for calcium sulfide decomposition","—","Environmental Tech"]],"France":[["PROCEDE DE FABRICATION DE SULFATE DE SODIUM A PARTIR DE PHOSPHOGYPSE","—","Circular Chemistry"],["Perfectionnements apportés aux procédés et aux appareils de prélèvement…","—","Mineral Processing"],["INSTALLATION D\u0027ABATTAGE A RABOT POUR TAILLE DE MINE SOUTERRAINE","—","Mineral Processing"],["PROCEDE DE PURIFICATION ET DE CONCENTRATION DES TERRES RARES A PARTIR D…","—","Circular Chemistry"],["PROCEDE DE FABRICATION D\u0027UN MATERIAU CERAMIQUE POUR LE STOCKAGE THERMIQ…","—","Energy \u0026 Storage"],["PROCEDE DE FABRICATION D\u0027UN ENGRAIS A BASE DE PHOSPHATE D\u0027AMMONIUM PRES…","—","Sustainable Agriculture"],["SYSTEME D\u0027EVACUATION DE PHOSPHOGYPSE","—","Circular Chemistry"],["PREPARATION D\u0027ACIDE PHOSPHORIQUE","—","Mineral Processing"],["WERKWIJZE VOOR HET ZUIVEREN VAN GIPS.","—","Mineral Processing"],["PROCEDE DE FABRICATION D\u0027HYDROGENOPHOSPHATE DE ZINC HYDRATE","—","Mineral Processing"]],"United States":[["Method of uranium recovery","—","Mineral Processing"],["Process for the recovery of uranium from wet-process phosphoric acid","—","Mineral Processing"],["Method for the treatment of phosphogypsum","—","Mineral Processing"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Processes for the recovery of uranium from wet-process phosphoric acid …","—","Mineral Processing"],["Method for producing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Processes for the recovery of uranium from industrial phosphoric acid u…","—","Mineral Processing"],["Processes for the recovery of uranium from wet-process phosphoric acid …","—","Mineral Processing"],["Phosphogypsum decomposition process","—","Environmental Tech"],["Preparation of phosphoric acid","—","Environmental Tech"]],"China":[["Method for producing hydrated zinc hydrogen phosphate","—","Mineral Processing"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"],["Method for producing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Method for manufacturing ammonium phosphate fertilizer having low cadmi…","—","Mineral Processing"],["Method for purifying and for concentrating rare earths from phosphogyps…","—","Environmental Tech"],["Calcium sulfide decomposition process","—","Environmental Tech"],["Phosphoric acid preparation","—","Environmental Tech"],["Phosphogypsum decomposition process","—","Environmental Tech"]],"WIPO":[["Method for producing hydrated zinc hydrogen phosphate","—","Mineral Processing"],["Process for purifying phosphoric acid by nanofiltration","—","Environmental Tech"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"],["Method for producing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Processes for the recovery of uranium from wet-process phosphoric acid …","—","Mineral Processing"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Method for producing sodium sulphate from phosphogypsum","—","Environmental Tech"],["Chemical phosphoric acid production unit comprising a phosphogypsum dis…","—","Environmental Tech"],["Calcium sulfide decomposition process","—","Environmental Tech"],["Phosphoric acid preparation","—","Environmental Tech"]],"EPO":[["Method for producing hydrated zinc hydrogen phosphate","—","Mineral Processing"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"],["Method for producing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Phosphoric acid preparation","—","Environmental Tech"],["Chemical phosphoric acid production unit comprising a phosphogypsum dis…","—","Environmental Tech"],["Calcium sulfide decomposition process","—","Environmental Tech"],["Phosphogypsum decomposition process","—","Environmental Tech"],["Method for purifying and for concentrating rare earths from phosphogyps…","—","Environmental Tech"]],"OAPI":[["SEPARATION SOLIDE - LIQUIDE PAR CONVOYEUR INCLINE A BANDE","—","Mineral Processing"],["Perfectionnements apportés aux procédés et aux appareils de prélèvement…","—","Mineral Processing"],["PROCEDE DE FABRICATION D\u0027UN ENGRAIS A BASE DE PHOSPHATE D\u0027AMMONIUM PRES…","—","Sustainable Agriculture"],["Installation chimique de production d\u0027acide phosphorique munie d\u0027un sys…","—","Circular Chemistry"],["Procédé de fabrication d\u0027hydrogéno-phosphate de zinc hydraté.","—","Mineral Processing"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"],["PROCEDE DE FABRICATION DE PLATRE","—","Mineral Processing"],["Nouveau procédé d\u0027enrichissement, par flottation, de minerais de phosph…","—","Mineral Processing"]],"Germany":[["VERFAHREN ZUR HERSTELLUNG EINES AMMONIUMPHOSPHATDÜNGEMITTELS MIT NIEDRI…","—","Mineral Processing"],["Hobelanlage mit einer Räumeinrichtung und Räumplatte","—","Mineral Processing"],["Verfahren zur Reinigung von Abfallgipsen","—","Mineral Processing"],["Verfahren zur Reinigung einer Naßphosphorsäure","—","Mineral Processing"],["CHEMISCHE HERSTELLUNG VON PHOSPHORSÄURE MIT EINEM PHOSPHORGIPS-ENTLADUN…","—","Environmental Tech"],["Verfahren zur Gewinnung von Uranverbindungen","—","Environmental Tech"],["VERFAHREN ZUR HERSTELLUNG VON CALCIUMFLUORID AUS FLUORKIESELSÄURE","—","Environmental Tech"],["PHOSPHORGIPSABBAUVERFAHREN","—","Environmental Tech"]],"India":[["New process for enrichment,by flotation,of phosphate ores with gangues …","—","Mineral Processing"],["Method for producing zinc hydrogen phosphate hydrate","—","Mineral Processing"],["Method for producing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Method for producing sodium sulphate from phosphogypsum","—","Environmental Tech"],["Chemical phosphoric acid production unit comprising a phosphogypsum dis…","—","Environmental Tech"],["Process for producing sodium sulphate from phosphogypsum","—","Environmental Tech"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"]],"Brazil":[["PROCESSO DE FABRICACAO DE GESSO A PARTIR DE FOSFOGIPSITA","—","Mineral Processing"],["PROCESSO PARA O ENRIQUECIMENTO POR FLOTACAO DE MINERIOS DE FOSFATOS DE …","—","Mineral Processing"],["PROCESSO PARA A DEPURACAO DO ACIDO FOSFORICO","—","Mineral Processing"],["MÉTODO PARA PRODUZIR HIDROGENOFOSFATO DE ZINCO HIDRATADO","—","Environmental Tech"],["MÉTODO PARA A FABRICAÇÃO DE UM FERTILIZANTE DE FOSFATO DE AMÔNIO TENDO …","—","Environmental Tech"],["MÉTODO PARA FABRICAR UM MATERIAL CERÂMICO PARA ARMAZENAMENTO DE ENERGIA…","—","Environmental Tech"],["PROCESSO PARA PRODUÇÃO DE SULFATO DE SÓDIO A PARTIR DE FOSFOGESSO","—","Environmental Tech"]],"Japan":[["Refining process for phosphoric acid","—","Environmental Tech"]],"Mexico":[["Method for producing hydrated zinc hydrogen phosphate","—","Mineral Processing"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Method for producing sodium sulphate from phosphogypsum","—","Environmental Tech"],["METODO PARA ELABORAR UN FERTILIZANTE DE FOSFATO DE AMONIO CON BAJO CONT…","—","Environmental Tech"],["PROCESO PARA PRODUCIR SULFATO DE SODIO A PARTIR DE FOSFOYESO","—","Environmental Tech"]],"Jordanien":[["Process for purifying and concentrating rare earths from phosphogypsum","—","Environmental Tech"],["Method for producing hydrated zinc hydrogen phosphate","—","Mineral Processing"],["Chemical phosphoric acid production unit comprising a phosphogypsum dis…","—","Environmental Tech"],["Preparation of phosphoric acid","—","Environmental Tech"]],"Israel":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Method for manufacturing a ceramic material for thermal energy storage","—","Energy \u0026 Storage"],["Chemical phosphoric acid production unit provided with a phosphogypsum …","—","Environmental Tech"],["Process for purifying and concentrating rare earths from phosphogypsum","—","Environmental Tech"]],"Canada":[["Process for purifying phosphoric acid by nanofiltration","—","Environmental Tech"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Calcium sulfide decomposition process","—","Environmental Tech"],["Phosphogypsum decomposition process","—","Environmental Tech"]],"South Africa":[["Process for purifying phosphoric acid by nanofiltration","—","Environmental Tech"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Process for producing sodium sulphate from phosphogypsum","—","Environmental Tech"],["Process of preparation of calcium fluoride from fluosilicic acid","—","Environmental Tech"]],"Great Britain":[["Process for the recovery of uranium","—","Mineral Processing"],["Mining equipment","—","Mineral Processing"],["Treatment of gypsum","—","Environmental Tech"],["Process for the purification of phosphoric acid","—","Mineral Processing"]],"Spain":[["Method for the treatment of phosphogypsum","—","Mineral Processing"],["Process for the purification of phosphoric acid","—","Mineral Processing"],["Procedimiento de fabricación de un fertilizante a base de fosfato de am…","—","Environmental Tech"],["Procedimiento de preparación del fluoruro de calcio a partir del ácido …","—","Environmental Tech"]],"Switzerland":[["Method of uranium recovery","—","Mineral Processing"]],"Austria":[["VERFAHREN ZUR HERSTELLUNG EINES AMMONIUMPHOSPHATDÜNGEMITTELS MIT NIEDRI…","—","Mineral Processing"],["VERFAHREN ZUR HERSTELLUNG VON CALCIUMFLUORID AUS FLUORKIESELSÄURE","—","Environmental Tech"],["CHEMISCHE HERSTELLUNG VON PHOSPHORSÄURE MIT EINEM PHOSPHORGIPS-ENTLADUN…","—","Environmental Tech"]],"EAPO":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"]],"Italy":[["PROCEDIMENTO PER LA DEPURAZIONE DELL\u0027ACIDO FOSFORICO","—","Mineral Processing"],["PROCEDIMENTO PER LA FABBRICAZIONE DEL GESSO","—","Mineral Processing"]],"China Hong Kong":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Process for preparing calcium fluoride from fluosilicic acid","—","Environmental Tech"]],"Vietnam":[["METHODS OF PRODUCTION OF LOW cadmium AMONIUM PHOSPHATE","—","Mineral Processing"],["PHƯƠNG PHÁP SẢN XUẤT PHÂN BÓN AMONI PHOSPHAT VÀ PHÂN BÓN THU ĐƯỢC TỪ PH…","—","Environmental Tech"]],"Tunisia":[["PROCEDE DE FABRICATION DE SULFATE DE SODIUM A PARTIR DE PHOSPHOGYPSE","—","Circular Chemistry"],["Process of preparing of calcium fluoride from fluosilicic acid","—","Environmental Tech"]],"Turkey":[["KARBONATLARI IHTIVA EDEN FOSFAT MADENLERINI FLOTASYONLA ZENGINLESTIREN …","—","Mineral Processing"],["Nanofiltrasyon ile fosforik asit arıtma yöntemi.","—","Environmental Tech"]],"Argentina":[["PROCEDIMIENTO PARA LA PRODUCCIÓN DE HIDRÓGENOFOSFATO DE ZINC HIDRATADO","—","Environmental Tech"],["PROCEDIMIENTO PARA PRODUCIR SULFATO DE SODIO A PARTIR DE FOSFOYESO","—","Environmental Tech"]],"Netherlands":[["WERKWIJZE VOOR HET ZUIVEREN VAN GIPS.","—","Mineral Processing"],["WERKWIJZE VOOR HET ZUIVEREN VAN FOSFORZUUR.","—","Mineral Processing"]],"Saudi Arabia":[["Process for producing sodium sulfate from phosphate gypsum","—","Mineral Processing"],["Process for producing sodium sulphate from phosphogypsum","—","Environmental Tech"]],"Singapore":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Process for producing sodium sulphate from phosphogypsum","—","Environmental Tech"]],"Australia":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"],["Process for purifying phosphoric acid by nanofiltration","—","Environmental Tech"]],"Belgium":[["PROCEDE DE FABRICATION DE PLATRE","—","Mineral Processing"]],"Poland":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"]],"WIPO/PCT":[["Procédé de traitement de solides cadmifères","—","Environmental Tech"]],"Finland":[["Phosphogypsum decomposition process","—","Environmental Tech"]],"Hungary":[["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","Mineral Processing"]],"Greece":[["Process for phosphoric acid purification","—","Mineral Processing"]],"Indonesia":[["METODE UNTUK PEMBUATAN SUATU PUPUK AMONIUM FOSFAT YANG MEMILIKI KANDUNG…","—","Environmental Tech"]]},"countryList":[{"count":175,"label":"Morocco"},{"count":127,"label":"Filing country not recorded"},{"count":25,"label":"Russia"},{"count":16,"label":"France"},{"count":16,"label":"United States"},{"count":16,"label":"China"},{"count":12,"label":"WIPO"},{"count":9,"label":"EPO"},{"count":8,"label":"OAPI"},{"count":8,"label":"Germany"},{"count":8,"label":"India"},{"count":7,"label":"Brazil"},{"count":5,"label":"Japan"},{"count":5,"label":"Mexico"},{"count":4,"label":"Jordanien"},{"count":4,"label":"Israel"},{"count":4,"label":"Canada"},{"count":4,"label":"South Africa"},{"count":4,"label":"Great Britain"},{"count":4,"label":"Spain"},{"count":3,"label":"Switzerland"},{"count":3,"label":"Austria"},{"count":3,"label":"EAPO"},{"count":2,"label":"Italy"},{"count":2,"label":"China Hong Kong"},{"count":2,"label":"Vietnam"},{"count":2,"label":"Tunisia"},{"count":2,"label":"Turkey"},{"count":2,"label":"Argentina"},{"count":2,"label":"Netherlands"},{"count":2,"label":"Saudi Arabia"},{"count":2,"label":"Singapore"},{"count":2,"label":"Australia"},{"count":1,"label":"Belgium"},{"count":1,"label":"Poland"},{"count":1,"label":"WIPO/PCT"},{"count":1,"label":"Finland"},{"count":1,"label":"Hungary"},{"count":1,"label":"Greece"},{"count":1,"label":"Indonesia"}],"themePatents":{"Environmental Tech":[["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","—","CBS","🟡 OMPIC – En cours"],["DISPOSITIF POUR LA CONCENTRATION DES LIQUIDES ET SECHAGE DES SOLIDES PA…","2025","—","TechCell","🟡 OMPIC – En cours"],["SEMOIR DIRECT ADAPTE AU SOL SEC ET COHERENT","2025","—","Al-Moutmir","🟡 OMPIC – En cours"],["Bio-stimulant dérivé du digestat anaérobie de Gracilaria gracilis et Pl…","2025","—","ASARI","🟡 OMPIC – En cours"],["PROCEDE INTEGRE DE SEQUESTRATION DE CO2 UTILISANT LA SAUMURE DE L’OSMOS…","2025","—","ACER CoE","🟡 OMPIC – En cours"],["MICROCAPTEUR DE GAZ A HAUTE SELECTIVITE","2024","—","GTI","🌐 PCT international"],["Dispositif auto adaptatif micro-ondes pour le contrôle des ravageurs","2024","—","DICE","🟡 OMPIC – En cours"],["Dispositif pour semoir de semis conventionnel adapté au semis direct","2024","—","Al-Moutmir","🟡 OMPIC – En cours"],["Laboratoire d’analyse sanguines rapide, miniature et portatif","2023","EL KAMOUNY Khadija; Fatima Ezzahra EL…","MAScIR","⚪ Non renseigné"],["Natural extracts from red algae as a bio-insecticide against cochineal","2023","—","ASARI","🌐 PCT international"]],"Sustainable Agriculture":[["Système de Génération Évolutionnaire d\u0027Hypothèses de Cybermenaces Guidé…","2026","—","COLCOM","🟡 OMPIC – En cours"],["SYSTEME ET PROCEDE ADAPTATIF DE DIAGNOSTIC ET DE MAINTENANCE DE VEHICUL…","2025","—","GTI","🟡 OMPIC – En cours"],["Système flexible de régénération pour le captage du CO₂ par solvant uti…","2025","—","ACER CoE","🟡 OMPIC – En cours"],["PROCÉDÉ DE COAGULATION ENZYMATIQUE ET PRESSAGE ACCELERÉ POUR LA FABRICA…","2025","—","ASARI","🟡 OMPIC – En cours"],["COMPOSITION D’ENROBAGE ANTIPOUSSIERE POUR ENGRAIS SOLIDE","2025","—","CBS","🟡 OMPIC – En cours"],["Dispositif de détoxification des méteaux lourds en hydroponie assisté p…","2024","—","ASARI","🟡 OMPIC – En cours"],["Agent biostimulant obtenu par pyrolyse d\u0027extraits d\u0027algues rouges","2024","—","ASARI","🌐 PCT international"],["PROCEDE ET DISPOSITIF D\u0027EXTRACTION DES PRINCIPES ACTIFS DES PLANTES","2023","—","ASARI","🌐 PCT international"],["Nouvel engrais hybride de type organo- minéral","2023","—","MSN","🌐 PCT international"],["Souche bactérienne pour le contrôle de la cochenille du cactus Dactylop…","2022","MEFTAH KADMIRI Issam; Abderrahim AASF…","MAScIR","⚪ Non renseigné"]],"Mineral Processing":[["Procédé de démétallisation de l’acide phosphorique par nanofiltration p…","2026","—","CBS","🟡 OMPIC – En cours"],["PROCEDE DE TRAITEMENT THERMIQUE DU MINERAI DE CARNALLITE ASSOCIE A DE L…","2025","—","TechCell","🟡 OMPIC – En cours"],["Enrichissement direct du CO2 à partir de l’air via l\u0027adsorption à débit…","2025","—","ACER CoE","🟡 OMPIC – En cours"],["SECHAGE ET CALCINATION DE MINERAI DE PHOSPHATE A BILAN CARBONE NEGATIF","2025","—","ACER CoE","🟡 OMPIC – En cours"],["Procédé de production d\u0027hydroxyde de magnésium et de chlorure de potass…","2024","—","GSMI","🌐 PCT international"],["Procédé de transformation de la dolomite en composés à base des phospha…","2024","—","GSMI","🌐 PCT international"],["Procédé de production de struvite de haute pureté à partir d\u0027une saumur…","2024","—","GSMI","🟡 OMPIC – En cours"],["PROCEDE DE TRAITEMENT DU PHOSPHATE PAR LA LIXIVIATION A L’ACIDE PHOSPHO…","2024","—","CEPH","🟡 OMPIC – En cours"],["Procédé chimique pour le traitement du minerai de potasse de type carna…","2024","—","TechCell","🌐 PCT international"],["NOUVEAU PROCEDE DE PRODUCTION ET PURIFICATION D\u0027ACIDE PHOSPHORIQUE","2023","—","MSN","🌐 PCT international"]],"Circular Chemistry":[["PROCEDE DE CARBONISATION CATALYTIQUE DE MATIERES PREMIERES BIOSOURCEES","2026","—","MSN","🟡 OMPIC – En cours"],["LIGNINE–ZIF8 COMME ADHESIF BIOSOURCE POUR UN COLLAGE RENFORCE ET PLUS S…","2026","—","MSN","🟡 OMPIC – En cours"],["Collecteur biosource à base d\u0027huile de graines de cannabis pour une flo…","2025","—","GSMI","🟡 OMPIC – En cours"],["PAPIER D’EMBALLLAGE HYDROPHOBE A BASE DE DERIVES LIGNOCELLULOSIQUES ET …","2025","—","MSN","🟡 OMPIC – En cours"],["Procédé de Conversion Thermique du Phosphogypse en Sels Organiques de C…","2025","—","MSN","🟡 OMPIC – En cours"],["PROCEDE INTEGRE DE PURIFICATION DU PHOSPHOGYPSE","2025","—","ISTI","🟡 OMPIC – En cours"],["Élaboration de Géopolymères Acides et d’Éco-Matériaux à partir de Boues…","2025","—","MSN","🟡 OMPIC – En cours"],["Procédé pour l\u0027extraction des éléments de terres rares contenus dans du…","2025","—","MSN","🟡 OMPIC – En cours"],["Synthèse et caractérisation de l\u0027ettringite dérivée du phosphogypse (De…","2025","—","LIMSET","🟡 OMPIC – En cours"],["Procédé de transformation du phosphogypse pour la production d’hydroxyd…","2025","—","MSN","🟡 OMPIC – En cours"]],"Energy \u0026 Storage":[["MATERIAU DE CATHODE A BASE DE SPINELLE LNMO DOUBLEMENT DOPE EN CUIVRE E…","2026","—","LIMSET","🟡 OMPIC – En cours"],["PROCÉDÉ INTÉGRÉ DE RÉCUPÉRATION DU COBALT ET DE RÉGÉNÉRATION ÉLECTROCHI…","2026","—","ACER CoE","🟡 OMPIC – En cours"],["SYSTEME INTEGRE DE CAPTURE DIRECTE DU CO2 DANS L’AIR POUR CENTRALES SOL…","2026","—","ACER CoE","🟡 OMPIC – En cours"],["MATERIAUX CATHODIQUES LAMELLAIRES POUR BATTERIES LITHIUM-ION REVETUS D’…","2026","—","MSN","🟡 OMPIC – En cours"],["Matériaux monocristallins FP et LFP en forme d\u0027amande pour batteries li…","2025","—","MSN","🟡 OMPIC – En cours"],["Revêtement au Parylène de Matériaux Cathodiques pour Batteries Lithium-…","2025","—","MSN","🟡 OMPIC – En cours"],["PROCEDE DE PYROLYSE LASER POUR LA PRODUCTION DE GAZ SYNTHETIQUE RICHE E…","2025","—","MSN","🟡 OMPIC – En cours"],["PROCEDE DE PREPARATION DE FePO4 DE QUALITE BATTERIE A PARTIR DE LA ROCH…","2025","—","MSN","🟡 OMPIC – En cours"],["MATERIAU A BASE DE FLUORO-PHOSPHATES POUR CATHODES DE BATTERIES SODIUM-…","2025","—","ACER CoE","🟡 OMPIC – En cours"],["Matériaux d\u0027électrolytes polyfonctionnels à base de phosphore ou de flu…","2025","—","HTMR","🟡 OMPIC – En cours"]]},"themeList":[{"count":192,"label":"Environmental Tech"},{"count":51,"label":"Sustainable Agriculture"},{"count":105,"label":"Mineral Processing"},{"count":49,"label":"Circular Chemistry"},{"count":29,"label":"Energy \u0026 Storage"}],"themeYearLabels":[2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026],"themeYear":{"Environmental Tech":[0,3,5,10,10,14,11,9,6,8,6,9,7,5,3,4,1],"Sustainable Agriculture":[0,0,4,3,5,10,4,5,0,2,2,3,2,2,2,4,1],"Mineral Processing":[1,3,4,5,5,5,3,1,2,5,0,0,1,2,5,3,1],"Circular Chemistry":[0,0,1,3,4,2,1,1,2,0,2,0,5,4,5,8,2],"Energy \u0026 Storage":[0,0,0,0,4,0,2,0,0,0,0,2,2,3,3,6,4]},"labLabels":["MAScIR","OCP / CERPHOS (historique)","MSN","CERPHOS (historique)","ACER CoE","ASARI","CBS","GTI","GSMI","LIMSET","DICE","TechCell"],"labVals":[193,127,30,24,11,7,7,4,4,4,3,3],"labStatus":[{"data":[121,118,4,7,0,0,0,0,0,0,0,0],"label":"Granted / active"},{"data":[0,8,26,0,11,7,7,4,4,4,3,3],"label":"Pending"},{"data":[3,0,0,13,0,0,0,0,0,0,0,0],"label":"Lapsed / rejected"},{"data":[69,1,0,4,0,0,0,0,0,0,0,0],"label":"Not recorded"}],"labList":[{"count":193,"label":"MAScIR"},{"count":127,"label":"OCP / CERPHOS (historique)"},{"count":30,"label":"MSN"},{"count":24,"label":"CERPHOS (historique)"},{"count":11,"label":"ACER CoE"},{"count":7,"label":"ASARI"},{"count":7,"label":"CBS"},{"count":4,"label":"GTI"},{"count":4,"label":"GSMI"},{"count":4,"label":"LIMSET"},{"count":3,"label":"DICE"},{"count":3,"label":"TechCell"},{"count":2,"label":"Al-Moutmir"},{"count":2,"label":"ILO"},{"count":1,"label":"D4R"},{"count":1,"label":"CEPH"},{"count":1,"label":"COLCOM"},{"count":1,"label":"ISTI"},{"count":1,"label":"HTMR"}],"labPatents":{"MAScIR":[["Laboratoire d’analyse sanguines rapide, miniature et portatif","2023","EL KAMOUNY Khadija; Fatima Ezzahra EL…","Environmental Tech"],["Procédé de préparation d\u0027un emballage actif et intelligent à base de bi…","2023","ESSAMLALI YOUNES; AMADINE OTHMANE; ZA…","Environmental Tech"],["Borne de recharge rapide universelle pour batterie de scooters électriq…","2023","BOANARIJESY Andronic; NADOUR Mohamed;…","Energy \u0026 Storage"],["RESEAU ENERGETIQUE HYBRIDE ET SON SYSTEME DE GESTION DES DONNEES PAR IN…","2023","BENNANI RACHID; BENSALAH MOUAD; DHIMN…","Energy \u0026 Storage"],["Souche bactérienne pour le contrôle de la cochenille du cactus Dactylop…","2022","MEFTAH KADMIRI Issam; Abderrahim AASF…","Sustainable Agriculture"],["Capteur de gaz à régulation automatique","2022","LAHLALIA Ayoub; Khadija EL KAMOUNY","Environmental Tech"],["Additif pour batterie Plomb-acide","2022","BRICHE SAMIR; REDOUANY YASSINE; JHABL…","Energy \u0026 Storage"],["Ombrière suiveuse de soleil","2022","BOUKHRAIS Essadik; BOURZEIX FRANCOIS;…","Environmental Tech"],["Charbon actif magnétique et photocatalytique pour la dépollution des ea…","2022","BRICHE Samir; El Mountassir EL MOUCHT…","Circular Chemistry"],["Fertilisant à base de microcapsule de polysaccharide phosphorylé enrich…","2022","RAJI Marya; Mohamed El Mehdi Mekhzoum…","Sustainable Agriculture"]],"OCP / CERPHOS (historique)":[["PREPARATION D\u0027ACIDE PHOSPHORIQUE","—","—","Mineral Processing"],["PROCEDE DE PURIFICATION D\u0027ACIDE PHOSPHORIQUE PAR NANOFILTRATION","—","—","Mineral Processing"],["METHODS OF PRODUCTION OF LOW cadmium AMONIUM PHOSPHATE","—","—","Mineral Processing"],["Method for manufacturing ammonium phosphate fertilizer having low cadmi…","—","—","Mineral Processing"],["Method for manufacturing an ammonium phosphate fertilizer having low ca…","—","—","Mineral Processing"],["PROCEDE POUR L\u0027EPURATION DE L\u0027ACIDE PHOSPHORIQUE","—","—","Mineral Processing"],["Process for the purification of phosphoric acid","—","—","Mineral Processing"],["PROCESSO PARA A DEPURACAO DO ACIDO FOSFORICO","—","—","Mineral Processing"],["Process for removing heavy metals, and especially cadmium, contained in…","—","—","Mineral Processing"],["PROCEDIMENTO PER LA DEPURAZIONE DELL\u0027ACIDO FOSFORICO","—","—","Mineral Processing"]],"MSN":[["PROCEDE DE CARBONISATION CATALYTIQUE DE MATIERES PREMIERES BIOSOURCEES","2026","—","Circular Chemistry"],["MATERIAUX CATHODIQUES LAMELLAIRES POUR BATTERIES LITHIUM-ION REVETUS D’…","2026","—","Energy \u0026 Storage"],["LIGNINE–ZIF8 COMME ADHESIF BIOSOURCE POUR UN COLLAGE RENFORCE ET PLUS S…","2026","—","Circular Chemistry"],["PAPIER D’EMBALLLAGE HYDROPHOBE A BASE DE DERIVES LIGNOCELLULOSIQUES ET …","2025","—","Circular Chemistry"],["Procédé de Conversion Thermique du Phosphogypse en Sels Organiques de C…","2025","—","Circular Chemistry"],["Matériaux monocristallins FP et LFP en forme d\u0027amande pour batteries li…","2025","—","Energy \u0026 Storage"],["Revêtement au Parylène de Matériaux Cathodiques pour Batteries Lithium-…","2025","—","Energy \u0026 Storage"],["Élaboration de Géopolymères Acides et d’Éco-Matériaux à partir de Boues…","2025","—","Circular Chemistry"],["PROCEDE DE PYROLYSE LASER POUR LA PRODUCTION DE GAZ SYNTHETIQUE RICHE E…","2025","—","Energy \u0026 Storage"],["PROCEDE DE PREPARATION DE FePO4 DE QUALITE BATTERIE A PARTIR DE LA ROCH…","2025","—","Energy \u0026 Storage"]],"CERPHOS (historique)":[["Elimination du vanadium dans l’acide phosphorique","—","—","Mineral Processing"],["Procédé d’élimination d’uranium de l’H3P04","—","—","Mineral Processing"],["Procédé d’élimination des radioéléments et des terres rares de l’acide …","—","—","Mineral Processing"],["Procédé de traitement thermique à basse 0° de minerai et concentrés de …","—","—","Mineral Processing"],["Nouveau procédé de concentration d’acide phosphorique par la technique …","—","—","Mineral Processing"],["Nouveaux procédés de dècadmiation d’acide phosphorique","—","—","Mineral Processing"],["ATTAQUE DES PHOSPHATES PAR L\u0027ACIDE FLUOSILICIQUE","—","—","Circular Chemistry"],["Procédé de valorisation du fluor produit lors de la production d’acide …","—","—","Circular Chemistry"],["Procédé écologique de recyclage de déchets industriels renfermant du so…","—","—","Circular Chemistry"],["Procédé de traitement thermique à haute température de matériaux et min…","—","—","Mineral Processing"]],"ACER CoE":[["PROCÉDÉ INTÉGRÉ DE RÉCUPÉRATION DU COBALT ET DE RÉGÉNÉRATION ÉLECTROCHI…","2026","—","Energy \u0026 Storage"],["SYSTEME INTEGRE DE CAPTURE DIRECTE DU CO2 DANS L’AIR POUR CENTRALES SOL…","2026","—","Energy \u0026 Storage"],["Système flexible de régénération pour le captage du CO₂ par solvant uti…","2025","—","Sustainable Agriculture"],["Enrichissement direct du CO2 à partir de l’air via l\u0027adsorption à débit…","2025","—","Mineral Processing"],["MATERIAU A BASE DE FLUORO-PHOSPHATES POUR CATHODES DE BATTERIES SODIUM-…","2025","—","Energy \u0026 Storage"],["SECHAGE ET CALCINATION DE MINERAI DE PHOSPHATE A BILAN CARBONE NEGATIF","2025","—","Mineral Processing"],["PROCEDE INTEGRE DE SEQUESTRATION DE CO2 UTILISANT LA SAUMURE DE L’OSMOS…","2025","—","Environmental Tech"],["Procédé thermique de production de bio-methanol à partir des déchets hu…","2024","—","Circular Chemistry"],["Procédé intégré de production de sulfate d\u0027ammonium par valorisation de…","2024","—","Circular Chemistry"],["EXTRACTION D’URANIUM A PARTIR DE MATRICES MINERALES PHOSPHATÉES","2023","—","Mineral Processing"]],"ASARI":[["PROCÉDÉ DE COAGULATION ENZYMATIQUE ET PRESSAGE ACCELERÉ POUR LA FABRICA…","2025","—","Sustainable Agriculture"],["Bio-stimulant dérivé du digestat anaérobie de Gracilaria gracilis et Pl…","2025","—","Environmental Tech"],["Dispositif de détoxification des méteaux lourds en hydroponie assisté p…","2024","—","Sustainable Agriculture"],["Procédé d\u0027extraction de l\u0027acide sulfurique et de production de produits…","2024","—","Circular Chemistry"],["Agent biostimulant obtenu par pyrolyse d\u0027extraits d\u0027algues rouges","2024","—","Sustainable Agriculture"],["Natural extracts from red algae as a bio-insecticide against cochineal","2023","—","Environmental Tech"],["PROCEDE ET DISPOSITIF D\u0027EXTRACTION DES PRINCIPES ACTIFS DES PLANTES","2023","—","Sustainable Agriculture"]],"CBS":[["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","—","Environmental Tech"],["Procédé de démétallisation de l’acide phosphorique par nanofiltration p…","2026","—","Mineral Processing"],["COMPOSITION D’ENROBAGE ANTIPOUSSIERE POUR ENGRAIS SOLIDE","2025","—","Sustainable Agriculture"],["PROCEDE DE PRODUCTION DE ZIF-8, DE SON COMPOSITE CHITOSAN@ZIF-8 ET LEUR…","2022","—","Environmental Tech"],["PROCEDE D’OBTENTION DE SELS D’URANIUM PAR NANOFILTRATION D’UN ELUAT ACI…","2022","—","Mineral Processing"],["PROCEDE DE FABRICATION D’UN POLYMÈRE DE COORDINATION DE TYPE METALORGAN…","2022","—","Environmental Tech"],["Dual emitting photoluminescent ink","2021","—","Environmental Tech"]],"GTI":[["SYSTEME ET PROCEDE ADAPTATIF DE DIAGNOSTIC ET DE MAINTENANCE DE VEHICUL…","2025","—","Sustainable Agriculture"],["MICROCAPTEUR DE GAZ A HAUTE SELECTIVITE","2024","—","Environmental Tech"],["Batteries avec système de refroidissement integré","2024","—","Energy \u0026 Storage"],["Batteries avec Générateur thermoélectrique Intégré","2024","—","Energy \u0026 Storage"]],"GSMI":[["Collecteur biosource à base d\u0027huile de graines de cannabis pour une flo…","2025","—","Circular Chemistry"],["Procédé de production d\u0027hydroxyde de magnésium et de chlorure de potass…","2024","—","Mineral Processing"],["Procédé de transformation de la dolomite en composés à base des phospha…","2024","—","Mineral Processing"],["Procédé de production de struvite de haute pureté à partir d\u0027une saumur…","2024","—","Mineral Processing"]],"LIMSET":[["MATERIAU DE CATHODE A BASE DE SPINELLE LNMO DOUBLEMENT DOPE EN CUIVRE E…","2026","—","Energy \u0026 Storage"],["Synthèse et caractérisation de l\u0027ettringite dérivée du phosphogypse (De…","2025","—","Circular Chemistry"],["Synthèse et caractérisation de l\u0027ettringite dérivée du phosphogypse","2024","—","Circular Chemistry"],["PHOSPHOGYPSE EN TANT QUE MATERIAU UTILISE POUR LE STOCKAGE D’ENERGIE TH…","2022","—","Circular Chemistry"]],"DICE":[["Dispositif auto adaptatif micro-ondes pour le contrôle des ravageurs","2024","—","Environmental Tech"],["DOCUMENT SECURISE, SON PROCEDE DE SECURISATION ET PROCEDE D’AUTHENTIFIC…","2023","—","Environmental Tech"],["APPAREIL D’ANALYSE COMPORTANT UN DISPOSITIF MICROONDES ET SON APPLICATI…","2023","—","Environmental Tech"]],"TechCell":[["DISPOSITIF POUR LA CONCENTRATION DES LIQUIDES ET SECHAGE DES SOLIDES PA…","2025","—","Environmental Tech"],["PROCEDE DE TRAITEMENT THERMIQUE DU MINERAI DE CARNALLITE ASSOCIE A DE L…","2025","—","Mineral Processing"],["Procédé chimique pour le traitement du minerai de potasse de type carna…","2024","—","Mineral Processing"]],"Al-Moutmir":[["SEMOIR DIRECT ADAPTE AU SOL SEC ET COHERENT","2025","—","Environmental Tech"],["Dispositif pour semoir de semis conventionnel adapté au semis direct","2024","—","Environmental Tech"]],"ILO":[["Système basé sur une architecture logicielle intelligente distribuée po…","2022","—","Environmental Tech"],["APPAREIL PORTATIF POUR LE CONTROL NON-INVASIF DE LA GLYCEMIE","2021","—","Environmental Tech"]],"D4R":[["Appareil non-invasif de spectroscopie par bi-dispersion électromagnétiq…","2021","—","Environmental Tech"]],"CEPH":[["PROCEDE DE TRAITEMENT DU PHOSPHATE PAR LA LIXIVIATION A L’ACIDE PHOSPHO…","2024","—","Mineral Processing"]],"COLCOM":[["Système de Génération Évolutionnaire d\u0027Hypothèses de Cybermenaces Guidé…","2026","—","Sustainable Agriculture"]],"ISTI":[["PROCEDE INTEGRE DE PURIFICATION DU PHOSPHOGYPSE","2025","—","Circular Chemistry"]],"HTMR":[["Matériaux d\u0027électrolytes polyfonctionnels à base de phosphore ou de flu…","2025","—","Energy \u0026 Storage"]]},"invLabels":["BOUHFID RACHID","QAISS ABOU EL KACEM","BOURZEIX FRANCOIS","BELAICHE, BRICHE, REDOUANY, MOUHIB","BOUHFID RACHID QAISS ABOU EL KACEM","BENNANI Rachid","LAKSSIR BRAHIM","LAHLALIA Ayoub","RAJI MARYA","BRICHE SAMIR","AIT BENHASSOU, BENTALEB, SEFRIOUI","ABOU EL KACEM Qaiss"],"invLabs":["MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR","MAScIR"],"invVals":[12,9,8,6,5,5,4,4,4,4,4,4],"collabIndustry":58,"collabAcademic":8,"collabIndependent":360,"avgRemainingLife":9.8,"expiringSoon":7,"lifeBands":[{"data":0,"label":"\u003e 15 yrs left"},{"data":48,"label":"10-15 yrs"},{"data":70,"label":"5-10 yrs"},{"data":7,"label":"\u003c 5 yrs left"}],"filingsIntl":[0,0,0,0,0,0,0,0,0,0,0,0,4,10,9,0,0],"pruneCount":72,"peerBench":{"Internationale de Rabat (UIR)":{"scope":0.21,"patents":59,"sciNpl":0,"originality":0.78,"triadic":0},"UM6P (incl. MAScIR)":{"scope":0.32,"patents":28,"sciNpl":0.02,"originality":0.65,"triadic":0},"Mohammed V - Rabat":{"scope":null,"patents":18,"sciNpl":0,"originality":null,"triadic":0},"Hassan II - Casablanca":{"scope":0.14,"patents":7,"sciNpl":0,"originality":0.75,"triadic":1}},"origReal":0.65,"sciProxReal":0.02,"cf":{"morocco":{"top10":18.8,"orig":0.82,"npl":0.01,"fwd5yr":0.019,"intlUS":12.1,"scope":0.31,"patents":1500,"triadic":1.9},"southafrica":{"top10":25.7,"orig":0.79,"npl":0.01,"fwd5yr":0.016,"intlUS":36.9,"scope":0.34,"patents":6914,"triadic":2.6},"um6p":{"top10":5,"orig":0.63,"npl":0.01,"fwd5yr":0.007,"intlUS":1.6,"scope":0.34,"patents":28,"triadic":0},"tunisia":{"top10":13.7,"orig":0.79,"npl":0.01,"fwd5yr":0.017,"intlUS":7.1,"scope":0.31,"patents":2046,"triadic":1.3}},"partnerYears":[2019,2020,2021,2022,2023,2024,2025],"partnerOcp":[0,0,0,0,1,18,22],"partnerOther":[1,1,1,7,0,0,3],"partnerAcad":[2,0,3,0,0,0,0],"partnerSolo":[12,9,10,10,15,0,0],"peakYear":2015,"peakCount":31,"countryTotal":426,"countryRecorded":299,"countryNotRecorded":127,"countryMetric":"Each application counted once by primary filing route (File 3 geo); blank geo shown as a data gap.","radarScores":[40,61,9,44,57,22],"radarActuals":["CAGR +14%/yr (2022-2025); 25 filings in 2025","Avg |gap| 12 pts vs theme strategy weights (targets illustrative)","8% filed internationally (PCT/foreign, File 3)","0.8 forward citations per patent (Orbit/File 7)","17% on a live commercial path (illustrative / awaiting TTO)","OCP concentration 70% of co-filings (HHI 0.58)"],"radarBench":{"morocco":[40,50,53,50,27,56],"top":[100,83,100,100,100,100],"africa":[31,40,35,39,20,40]},"bench":{"topTier":0,"techBreadth":1.7,"cagr":14,"timeToGrant":1.8,"goingIntl":8,"keptAlive":97,"fwdCit":0.8},"deepdives":{"researchers":{"cols":["Researcher","Patents","Lab / Hub","Main domain"],"illustrative":false,"sub":"Inventors credited on the most patents, with their main lab and domain","key":"researchers","title":"Top Researchers by Patent Output","rows":[["BOUHFID RACHID","12","MAScIR","Circular Chemistry"],["QAISS ABOU EL KACEM","9","MAScIR","Environmental Tech"],["BOURZEIX FRANCOIS","8","MAScIR","Environmental Tech"],["BELAICHE, BRICHE, REDOUANY, MOUHIB","6","MAScIR","Energy \u0026 Storage"],["BOUHFID RACHID QAISS ABOU EL KACEM","5","MAScIR","Environmental Tech"],["BENNANI Rachid","5","MAScIR","Environmental Tech"],["LAKSSIR BRAHIM","4","MAScIR","Environmental Tech"],["LAHLALIA Ayoub","4","MAScIR","Environmental Tech"],["RAJI MARYA","4","MAScIR","Circular Chemistry"],["BRICHE SAMIR","4","MAScIR","Environmental Tech"]]},"renewal":{"cols":["Patent title","Filed","Status"],"illustrative":false,"sub":"Oldest MAScIR patents still renewed (File 5)","key":"renewal","title":"Longest-Active Patents","rows":[["Ferrites et Nanoférrites: Semiconducteurs magnétiques demimétaliques  n…","2011-06-30","Active ~15 yrs"],["Conception d\u0027un système embarqué électronique multifonctions  pour mult…","2011-10-26","Active ~15 yrs"],["Synthèse et propriétés physiques des Nanoparticules de férrites   Sn1xM…","2011-10-26","Active ~15 yrs"],["Conception d\u0027un module VHDL pour conversion automatique   de débit d’im…","2011-10-26","Active ~15 yrs"],["Conception d’un support de montage de puce microélectronique pour un bo…","2011-10-26","Active ~15 yrs"]]},"commByTheme":{"cols":["Patent title","Theme","Pathway"],"illustrative":true,"sub":"Awaiting TTO licensing data","key":"commByTheme","title":"Commercialization by Theme","rows":[]},"pruning":{"cols":["Patent title","Filed","Age","Status"],"illustrative":false,"sub":"Domestic-only patents 10+ years old still being maintained â€” review against renewal cost (File 3)","key":"pruning","title":"Portfolio Pruning Candidates","rows":[["Conception d\u0027un système embarqué électronique multifonctions pour multi…","2011","15 yrs","🔵 Maintenu / En phase"],["Ferrites et Nanoférrites: Semiconducteurs magnétiques demimétaliques na…","2011","15 yrs","🔵 Maintenu / En phase"],["Conception d\u0027un module VHDL pour conversion automatique de débit d’imag…","2011","15 yrs","🔵 Maintenu / En phase"],["Conception d’un support de montage de puce microélectronique pour un bo…","2011","15 yrs","🔵 Maintenu / En phase"],["Synthèse et propriétés physiques des Nanoparticules de férrites Sn1xMex…","2011","15 yrs","🔵 Maintenu / En phase"],["Synthèse de matériaux pour la décoloration et la dégradation des pollua…","2011","15 yrs","🔵 Maintenu / En phase"],["Sondes et amorces pour détecter le gène HER2 en format multiplexe et se…","2012","14 yrs","🔵 Maintenu / En phase"],["Préparation de nouveaux biocomposites chitosanargile modifiée.","2012","14 yrs","🔵 Maintenu / En phase"],["Sondes et amorces pour la détection du gène BCR-ABL en réaction duplex.","2012","14 yrs","🔵 Maintenu / En phase"],["Nouvelle utilisation du cuivre à la place de l’Or comme moyen d’interco…","2012","14 yrs","🔵 Maintenu / En phase"]]},"triadicList":{"cols":["Patent title","Has","Still needs"],"illustrative":false,"sub":"Families nearest to triadic coverage â€” none are complete yet (File 6)","key":"triadicList","title":"Closest to Triadic (EP+US+JP) Protection","rows":[["Method For Synthesising A Material For A Lithium-Ion Battery Consisting…","EP+US","+JP"],["Method For Manufacturing Ammonium Sulphate And Calcium Carbonate From P…","EP+US","+JP"],["METHOD FOR MANUFACTURING ZINC PHOSPHATE (ZN3(PO4)2)","EP+US","+JP"],["PROCESS FOR PRODUCING PHOSPHORUS","EP+US","+JP"],["METHOD FOR PRODUCING SULFUR FROM PHOSPHOGYPSUM","EP+US","+JP"]]},"netFilings":{"cols":["Patent title","Year","Lab","Theme"],"illustrative":false,"sub":"10 most recently filed applications (File 3)","key":"netFilings","title":"Most Recent Patent Filings","rows":[["Système de Génération Évolutionnaire d\u0027Hypothèses de Cybermenaces Guidé…","2026","COLCOM","Sustainable Agriculture"],["MATERIAU DE CATHODE A BASE DE SPINELLE LNMO DOUBLEMENT DOPE EN CUIVRE E…","2026","LIMSET","Energy \u0026 Storage"],["PROCÉDÉ INTÉGRÉ DE RÉCUPÉRATION DU COBALT ET DE RÉGÉNÉRATION ÉLECTROCHI…","2026","ACER CoE","Energy \u0026 Storage"],["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","CBS","Environmental Tech"],["Procédé de démétallisation de l’acide phosphorique par nanofiltration p…","2026","CBS","Mineral Processing"],["PROCEDE DE CARBONISATION CATALYTIQUE DE MATIERES PREMIERES BIOSOURCEES","2026","MSN","Circular Chemistry"],["SYSTEME INTEGRE DE CAPTURE DIRECTE DU CO2 DANS L’AIR POUR CENTRALES SOL…","2026","ACER CoE","Energy \u0026 Storage"],["MATERIAUX CATHODIQUES LAMELLAIRES POUR BATTERIES LITHIUM-ION REVETUS D’…","2026","MSN","Energy \u0026 Storage"],["LIGNINE–ZIF8 COMME ADHESIF BIOSOURCE POUR UN COLLAGE RENFORCE ET PLUS S…","2026","MSN","Circular Chemistry"],["Collecteur biosource à base d\u0027huile de graines de cannabis pour une flo…","2025","GSMI","Circular Chemistry"]]},"timeToGrant":{"cols":["Patent title","Filed","Granted","Years"],"illustrative":false,"sub":"MAScIR renewal portfolio - filing to grant lag (File 5)","key":"timeToGrant","title":"Slowest Patents to Grant","rows":[["Formule  à base de macroalgues  et microalgues pour l’accélération de l…","2015-04-24","2019-08-30","4.4 yrs"],["Formule à base d’extraits des microalgues pour induire la tolérance des…","2015-04-24","2019-05-31","4.1 yrs"],["Système de détection du bon fonctionnement des lampadaires d’éclairage …","2020-12-30","2024-02-29","3.2 yrs"],["Produit booster de germination et d’enracinement dans des sols fortemen…","2015-04-30","2018-06-29","3.2 yrs"],["Procédé de dépôt de couches minces d’oxyde d\u0027étain dopé au fluor (FTO) …","2017-12-25","2020-12-31","3 yrs"]]},"themeTreemap":{"cols":["Patent title","Year","Status"],"illustrative":false,"sub":"Largest theme in File 3 inventory","key":"themeTreemap","title":"Top Patents - Environmental Tech","rows":[["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","🟡 OMPIC – En cours"],["PROCEDE INTEGRE DE SEQUESTRATION DE CO2 UTILISANT LA SAUMURE DE L’OSMOS…","2025","🟡 OMPIC – En cours"],["SEMOIR DIRECT ADAPTE AU SOL SEC ET COHERENT","2025","🟡 OMPIC – En cours"],["DISPOSITIF POUR LA CONCENTRATION DES LIQUIDES ET SECHAGE DES SOLIDES PA…","2025","🟡 OMPIC – En cours"],["Bio-stimulant dérivé du digestat anaérobie de Gracilaria gracilis et Pl…","2025","🟡 OMPIC – En cours"],["Dispositif pour semoir de semis conventionnel adapté au semis direct","2024","🟡 OMPIC – En cours"],["MICROCAPTEUR DE GAZ A HAUTE SELECTIVITE","2024","🌐 PCT international"],["Dispositif auto adaptatif micro-ondes pour le contrôle des ravageurs","2024","🟡 OMPIC – En cours"],["Laboratoire d’analyse sanguines rapide, miniature et portatif","2023","⚪ Non renseigné"],["APPAREIL D’ANALYSE COMPORTANT UN DISPOSITIF MICROONDES ET SON APPLICATI…","2023","🌐 PCT international"]]},"partnerTrend":{"cols":["Patent title","Year","Source"],"illustrative":false,"sub":"Co-owned or OCP-partner filings (Files 3/4)","key":"partnerTrend","title":"Top OCP-Linked Patents","rows":[["DISPOSITIF POUR LA SIMULATION DE PRISE EN MASSE DE PRODUITS GRANULAIRES…","2026","TTO"],["SECHAGE ET CALCINATION DE MINERAI DE PHOSPHATE A BILAN CARBONE NEGATIF","2025","TTO"],["Procédé de production d\u0027hydroxyde de magnésium et de chlorure de potass…","2024","TTO"],["Procédé de production de struvite de haute pureté à partir d\u0027une saumur…","2024","TTO"],["Granule d’engrais enrobé et procédé de fabrication d’un tel granule","0","MSN-OCP"]]},"commercialization":{"cols":["Patent title","Pathway","Partner"],"illustrative":true,"sub":"Awaiting TTO licensing registry","key":"commercialization","title":"Actively Licensed Patents","rows":[]},"citeByTheme":{"cols":["Patent title","Citations","Priority"],"illustrative":false,"sub":"File 7 citation-ranked list","key":"citeByTheme","title":"Most-Cited Patents (Orbit sample)","rows":[["(WO2022/010947) Diagnostic de maladie par spectroscopie et apprentissag…","6","2020-07-07"],["Procédé de fabrication de sulfate d\u0027ammonium et de carbonate de calcium…","5","2020-07-31"],["(WO2024/072201) Procede de recuperation des terres rares et du sulfate …","3","2022-09-30"],["Procédé pour la production du phosphore","2","2018-12-06"],["Composition bioactive à partir d\u0027extraits de plante d\u0027alfa à effet anti…","2","2021-05-03"],["(WO2022/108435) Nouveau procédé de transformation du phosphogypse","2","2020-11-23"],["(WO2025/239762) Procédé intégré de production de sulfate d\u0027ammonium par…","0","2024-05-16"],["Appareil non-invasif pour la detection de l\u0027activite osmotique et l\u0027den…","0","2020-12-29"],["Procédé pour la production du soufre à partir du phosphogypse","0","2018-12-18"],["Purification de boues de phosphates et son application dans la fabricat…","0","2022-08-08"]]},"dealsList":{"cols":["Patent title","Year","Type","Sector"],"illustrative":true,"sub":"Awaiting TTO deal log","key":"dealsList","title":"Recent Licensing Deals","rows":[]},"techBreadth":{"cols":["Patent title","Theme","IPC classes","Jurisdictions"],"illustrative":false,"sub":"Distinct IPC classes per family (File 6)","key":"techBreadth","title":"Broadest Patents by Technology Scope","rows":[["Procédé d’élimination de métaux lourds contenus dans les solutions d’ac…","Mineral Processing","5 classes","EP"],["Procédé de traitement d’une solution d’acide phosphorique contenant des…","Environmental Tech","4 classes","EP"],["Procede d’obtention de sels d’uranium par nanofiltration d’un eluat aci…","Mineral Processing","4 classes","EP"],["DISEASE DIAGNOSIS USING SPECTROSCOPY AND MACHINE LEARNING","â€”","4 classes","US, EP"],["DOCUMENT SECURISE, SON PROCEDE DE SECURISATION ET PROCEDE D’AUTHENTIFIC…","Environmental Tech","3 classes","MA, EP"]]},"forwardCitations":{"cols":["Patent title","Citations","Priority date"],"illustrative":false,"sub":"Orbit international citation export (File 7)","key":"forwardCitations","title":"Most-Cited Patents","rows":[["(WO2022/010947) Diagnostic de maladie par spectroscopie et apprentissag…","6","2020-07-07"],["Procédé de fabrication de sulfate d\u0027ammonium et de carbonate de calcium…","5","2020-07-31"],["(WO2024/072201) Procede de recuperation des terres rares et du sulfate …","3","2022-09-30"],["Procédé pour la production du phosphore","2","2018-12-06"],["Composition bioactive à partir d\u0027extraits de plante d\u0027alfa à effet anti…","2","2021-05-03"],["(WO2022/108435) Nouveau procédé de transformation du phosphogypse","2","2020-11-23"],["(WO2025/239762) Procédé intégré de production de sulfate d\u0027ammonium par…","0","2024-05-16"],["Appareil non-invasif pour la detection de l\u0027activite osmotique et l\u0027den…","0","2020-12-29"],["Procédé pour la production du soufre à partir du phosphogypse","0","2018-12-18"],["Purification de boues de phosphates et son application dans la fabricat…","0","2022-08-08"]]},"globalFootprint":{"cols":["Patent title","Coverage","# Jurisdictions"],"illustrative":false,"sub":"Top families by jurisdiction count (File 6)","key":"globalFootprint","title":"Most Globally Protected Inventions","rows":[["SYNTHESE ET CARACTERISATION DE L\u0027ETTRINGITE DERIVEE DU PHOSPHOGYPSE","EP, MA","2"],["APPAREIL D’ANALYSE COMPORTANT UN DISPOSITIF MICROONDES ET SON APPLICATI…","EP, MA","2"],["NOUVEAU PROCEDE DE PRODUCTION ET PURIFICATION D\u0027ACIDE PHOSPHORIQUE","EP, MA","2"],["CARBONE DUR BIOSOURCE, SON PROCEDE DE FABRICATION ET SON UTILISATION","MA, EP","2"],["METHOD FOR PRODUCING SULFUR FROM PHOSPHOGYPSUM","EP, US","2"]]},"origIndex":{"cols":["Patent title","Score","Note"],"illustrative":true,"sub":"Requires PATSTAT backward citations","key":"origIndex","title":"Most Original Patents","rows":[]},"extensionPriority":{"cols":["Patent title","Forward citations","Priority date","Suggested action"],"illustrative":false,"sub":"Highest-impact patents by forward citations â€” prioritise these for foreign filing (File 7)","key":"extensionPriority","title":"International Extension Priorities","rows":[["(WO2022/010947) Diagnostic de maladie par spectroscopie et apprentissag…","6","2020-07-07","Evaluate for PCT / EP + US extension"],["Procédé de fabrication de sulfate d\u0027ammonium et de carbonate de calcium…","5","2020-07-31","Evaluate for PCT / EP + US extension"],["(WO2024/072201) Procede de recuperation des terres rares et du sulfate …","3","2022-09-30","Evaluate for PCT / EP + US extension"],["Composition bioactive à partir d\u0027extraits de plante d\u0027alfa à effet anti…","2","2021-05-03","Evaluate for PCT / EP + US extension"],["(WO2022/108435) Nouveau procédé de transformation du phosphogypse","2","2020-11-23","Evaluate for PCT / EP + US extension"],["Procédé pour la production du phosphore","2","2018-12-06","Evaluate for PCT / EP + US extension"]]},"spinoffsList":{"cols":["Company","Founded","Area","Sector"],"illustrative":true,"sub":"Awaiting TTO venture registry","key":"spinoffsList","title":"UM6P Spin-off Companies","rows":[]}}};
+
+</script>
+<script>
+var TABS = [
+  {id:'0', n:'Overview',                    icon:'ti-layout-dashboard'},
+  {id:'1', n:'Scale & Momentum',            icon:'ti-trending-up'},
+  {id:'7', n:'Labs & Inventors',            icon:'ti-flask'},
+  {id:'2', n:'Research Themes',             icon:'ti-target'},
+  {id:'3', n:'Global Coverage',             icon:'ti-world'},
+  {id:'4', n:'Portfolio Quality',           icon:'ti-award'},
+  {id:'5', n:'Commercialization',           icon:'ti-cash'},
+  {id:'6', n:'Industrial Partnership & Ventures', icon:'ti-building-skyscraper'}
+];
+var bar = document.getElementById('tabbar');
+TABS.forEach(function(t,i){
+  var b=document.createElement('button');
+  b.className='tab'+(i===0?' on':'');
+  b.innerHTML='<i class="ti '+t.icon+'"></i>'+t.n;
+  b.onclick=function(){go(t.id,b)};
+  bar.appendChild(b);
+});
+function go(id,btn){
+  document.querySelectorAll('.view').forEach(function(e){e.classList.remove('on')});
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('on')});
+  document.getElementById('tab'+id).classList.add('on');
+  btn.classList.add('on');
+  placeBenchCtrl(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+var benchCtrlEl = document.getElementById('benchctrl');
+// The peer toggle only applies where there are real country-benchmark bars: Overview radar (0) and Quality (4).
+function placeBenchCtrl(tabId){
+  var view = (tabId==='0'||tabId==='4') ? document.getElementById('tab'+tabId) : null;
+  var anchor = view ? view.querySelector('.bench-anchor') : null;
+  if(anchor){ anchor.appendChild(benchCtrlEl); benchCtrlEl.style.display='flex'; }
+  else { benchCtrlEl.style.display='none'; }
+}
+
+var D = (typeof DASH_DATA !== 'undefined') ? DASH_DATA : null;
+
+function themeShortLabel(t){
+  if(!t) return '';
+  if(t.indexOf('Environmental')>=0) return 'Env. Tech';
+  if(t.indexOf('Green Agriculture')>=0 || t.indexOf('Sustainable Agriculture')>=0) return 'Sust. Agri';
+  if(t.indexOf('Mineral')>=0) return 'Mineral Proc.';
+  if(t.indexOf('Circular')>=0) return 'Circular Chem.';
+  if(t.indexOf('Energy')>=0) return 'Energy';
+  return t.split(' ')[0];
+}
+
+function buildExecTiles(){
+  if(!D) return;
+  var tm = D.treemap || [];
+  var lead = tm.length ? tm.slice().sort(function(a,b){return b.value-a.value;})[0] : null;
+  var lead2 = tm.length>1 ? tm.slice().sort(function(a,b){return b.value-a.value;})[1] : null;
+  var execData = [
+    {tab:'1', label:'Patent Filings', value:D.filings2025+' filings', status:'g',
+      verdict:'Record year in 2025 ('+D.filings2025+', up from '+D.filings2024+'). Momentum is real — the question is whether prosecution capacity keeps pace. '+D.totalPatents+' patents in total.'},
+    {tab:'2', label:'Research Theme Distribution',
+      value:(lead?lead.value:0)+'% '+themeShortLabel(lead?lead.label:'')+(lead2?' · '+lead2.value+'% '+themeShortLabel(lead2.label):''),
+      status:'a', verdict:'Heavily weighted to phosphate/mining roots. Watch the emerging themes — they signal where IP support will be needed next.'},
+    {tab:'3', label:'International Filing Rate', value:D.pctRate+'% international', status:'r',
+      verdict:'Only '+D.pctRate+'% of patents are protected beyond Morocco — the portfolio cannot be enforced where its technologies would compete. The clearest strategic gap.'},
+    {tab:'4', label:'Quality & Impact vs Peers', value:((D.cf&&D.cf.um6p)?Math.round(D.cf.um6p.top10):0)+'% high-impact', status:'r',
+      verdict:'Top-10% most-cited share is '+((D.cf&&D.cf.um6p)?Math.round(D.cf.um6p.top10):0)+'% vs ~'+((D.cf&&D.cf.morocco)?Math.round(D.cf.morocco.top10):0)+'% Morocco / ~'+((D.cf&&D.cf.southafrica)?Math.round(D.cf.southafrica.top10):0)+'% South Africa (internationally-tracked subset).'},
+    {tab:'5', label:'Active Commercialization Rate', value:'17% (illustrative)', status:'a', illus:true,
+      verdict:'Still a placeholder — awaiting a licensing registry. The real lever is working the dormant portfolio, not filing more.'},
+    {tab:'6', label:'Industry Concentration Index', value:'HHI '+D.hhi, status:'r',
+      verdict:'Industry co-filing runs through a single partner (HHI '+D.hhi+', above 0.5 = highly concentrated). Adding partners de-risks the commercial route.'}
+  ];
+  var execGrid = document.getElementById('execTiles');
+  execGrid.innerHTML = '';
+  execData.forEach(function(d){
+    var tile=document.createElement('div');
+    tile.className='tile tile-'+d.status;
+    tile.style.display='flex'; tile.style.flexDirection='column';
+    tile.onclick=function(){
+      var btns=document.querySelectorAll('.tab'), target=null;
+      for(var i=0;i<TABS.length;i++){ if(TABS[i].id===d.tab){ target=btns[i]; break; } }
+      go(d.tab, target);
+    };
+    var bcls=d.illus?'sb-illus':'sb-avail', btxt=d.illus?'Illustrative':'Tracked now';
+    tile.innerHTML='<div class="tile-l">'+d.label+'</div><div class="tile-v">'+d.value+'</div><div class="tile-verdict">'+d.verdict+'</div>'+
+      '<span class="statusbadge '+bcls+'" style="align-self:flex-end;margin-top:12px">'+btxt+'</span>';
+    execGrid.appendChild(tile);
+  });
+}
+
+function applyLiveMetrics(){
+  if(!D) return;
+  function setSel(sel, txt){ var el=document.querySelector(sel); if(el) el.textContent=txt; }
+  function fmtGap(v){ return (v>=0?'+':'')+v; }
+  function topTreemap(){
+    var tree=D.treemap||[];
+    var top={label:'',value:0};
+    tree.forEach(function(t){ if(t.value>top.value) top=t; });
+    return top;
+  }
+  function extremaAlign(){
+    var labels=D.alignLabels||[], vals=D.alignVals||[];
+    var over={label:'',val:-999}, under={label:'',val:999};
+    labels.forEach(function(l,i){
+      var v=vals[i]||0;
+      if(v>over.val) over={label:l,val:v};
+      if(v<under.val) under={label:l,val:v};
+    });
+    return {over:over,under:under};
+  }
+  function topCiteTheme(){
+    var labels=D.citeThemeLabels||[], vals=D.citeThemeVals||[];
+    var top={label:'',val:0};
+    labels.forEach(function(l,i){ if((vals[i]||0)>top.val) top={label:l,val:vals[i]}; });
+    return top;
+  }
+  var ctree=D.countryTreemap&&D.countryTreemap.length?D.countryTreemap:[];
+  var cTotal=D.countryTotal||ctree.reduce(function(a,b){return a+b.value;},0);
+  var moroccoBucket=null, intlBuckets=[];
+  ctree.forEach(function(b){
+    if(b.kind==='dom') moroccoBucket=b;
+    else if(b.kind==='intl'||b.kind==='multi') intlBuckets.push(b);
+  });
+  var moroccoCount=moroccoBucket?moroccoBucket.value:0;
+  var peakYear=D.peakYear||2025, peakCount=D.peakCount||D.filings2025;
+  var ag=extremaAlign(), tt=topTreemap(), tc=topCiteTheme();
+  var solo2025=(D.partnerSolo&&D.partnerSolo.length)?D.partnerSolo[D.partnerSolo.length-1]:0;
+  var tto2025=(D.filingsTto&&D.filingsTto.length)?D.filingsTto[D.filingsTto.length-1]:0;
+  // Radar headline: strongest/weakest among the 6 quality/impact metrics, UM6P vs Morocco avg (real, country files)
+  var cf=D.cf||{}, um=cf.um6p||{}, mor=cf.morocco||{};
+  var rdims=[['intlUS','international reach','%'],['triadic','triadic coverage','%'],['orig','originality',''],['scope','technology scope',''],['top10','high-impact citations','%'],['fwd5yr','forward citations','']];
+  var rStrong=null,rWeak=null;
+  if(mor.intlUS!=null){
+    rdims.forEach(function(d){
+      var u=um[d[0]]||0, m=mor[d[0]]||0, ratio=m>0?u/m:1;
+      if(!rStrong||ratio>rStrong.r) rStrong={n:d[1],r:ratio,u:u,m:m,s:d[2]};
+      if(!rWeak||ratio<rWeak.r) rWeak={n:d[1],r:ratio,u:u,m:m,s:d[2]};
+    });
+  }
+  if(rStrong&&rWeak){
+    setSel('#radarInsight',
+      'UM6P vs regional peers on quality and impact (internationally-tracked subset, ~'+(um.patents||'28')+' UM6P patents). Closest to the Morocco average on '+rStrong.n+' ('+rStrong.u+rStrong.s+' vs '+rStrong.m+rStrong.s+'); furthest behind on '+rWeak.n+' ('+rWeak.u+rWeak.s+' vs '+rWeak.m+rWeak.s+') — the clearest gap to close. South Africa leads the region on reach and impact.');
+  }
+
+  setSel('#tab1 .card.lead .insight',
+    D.filings2025+' filings in 2025 — the record year'+(peakYear!==2025?' (prior peak '+peakCount+' in '+peakYear+')':'')+', and the third straight up-year. The shift from MAScIR to UM6P-TTO origination shows the in-house pipeline is now driving growth. ('+D.filings2026+' filed so far in 2026 — a partial year, not yet comparable.)');
+
+  setSel('#tab1 .supGrid .card.sup:nth-child(1) .insight',
+    'Filings have grown ~'+D.cagr+'%/yr over the last three years. At this pace the bottleneck shifts downstream — prosecution and, eventually, commercialization capacity — well before it shows up as a filing slowdown.');
+
+  setSel('#tab1 .supGrid .card.sup:nth-child(3) .insight',
+    'Grant speed (~'+D.avgGrantLag+' years) is not the constraint — most applications clear quickly. Chase the few multi-year cases individually; the bigger risk is filings sitting un-prosecuted, not slow examination.');
+
+  setSel('#funnelFiled', D.totalPatents);
+  setSel('#funnelGranted', D.grantedCount);
+  setSel('#funnelConvGrant', '↓ ~'+D.grantRate+'% granted');
+  setSel('#tab1 .vf-section .insight',
+    'The '+D.totalPatents+' is total patents FILED, not granted. Of those, '+D.grantedCount+' (~'+D.grantRate+'%) are granted or actively maintained; the rest are pending, abandoned/rejected, or have no recorded status (about 1 in 6) — so treat '+D.grantRate+'% as a conservative floor. The two stages worth attention are the funnel’s narrowest points: turning disclosures into filings, and granted patents into licences.');
+
+  setSel('#tab2 .card.lead .insight',
+    tt.label+' is '+tt.value+'% of the portfolio — a heavy tilt toward UM6P’s phosphate and mining roots. The strategic question is whether that concentration matches where UM6P wants to compete next, or whether emerging themes are under-protected.');
+
+  function alignExplain(label, gap){
+    var i=D.alignLabels?D.alignLabels.indexOf(label):-1;
+    var share=(i>=0&&D.alignShareVals)?D.alignShareVals[i]:'?';
+    return label+' is '+share+'% of filings ('+fmtGap(gap)+' pts vs its placeholder target)';
+  }
+  setSel('#tab2 .supGrid .card.sup:nth-child(1) .insight',
+    'The widest gaps: '+alignExplain(ag.over.label,ag.over.val)+'; '+alignExplain(ag.under.label,ag.under.val)+'. Targets are placeholders for now — but once set, the under-weighted themes are where new filing effort should go. Read directionally until real targets are supplied.');
+
+  setSel('#tab2 .supGrid .card.sup:nth-child(2) .insight',
+    'Placeholder only — not yet computed from real licensing data. Once the deal registry arrives, this answers which themes actually convert to revenue, not just which file the most.');
+
+  setSel('#tab2 .supGrid .card.sup:nth-child(3) .insight',
+    'Where external attention is landing, across a small international sample ('+(D.citeMatchedTotal||0)+' of '+(D.citeSampleTotal||0)+' matched to a theme). Themes with little foreign filing show little citation data — that is sample coverage, not necessarily weaker science.');
+
+  setSel('#tab3 .card.lead .insight',
+    moroccoCount+' of '+D.totalPatents+' applications ('+Math.round(100*moroccoCount/Math.max(1,D.totalPatents))+'%) are protected only in Morocco, and '+(D.countryNotRecorded||0)+' have no filing country recorded. The portfolio is protected where UM6P invents, not where its technologies would be sold — the central international-strategy gap.');
+
+  (function(){
+    var cfa=D.cf||{}, u=cfa.um6p||{}, m=cfa.morocco||{}, sa=cfa.southafrica||{};
+    var extra=(u.intlUS!=null)?(' On the internationally-tracked subset, UM6P reaches the US on ~'+u.intlUS+'% of patents, vs ~'+m.intlUS+'% for Morocco overall and ~'+sa.intlUS+'% for South Africa (the regional leader).'):'';
+    setSel('#intlInsight', 'Only '+D.pctRate+'% of UM6P’s '+D.totalPatents+' applications are filed beyond Morocco.'+extra+' Closing even part of this gap on the highest-impact patents is the single highest-leverage international move.');
+  })();
+
+  setSel('#tab3 .supGrid .card.sup:nth-child(2) .insight',
+    'No patent yet holds full EU + US + Japan (triadic) protection. The closest are a small set already filed in EP + US that need only a Japan extension to complete the triad — the highest-leverage shortlist for international filing. Open the drill-down for those candidates.');
+
+  setSel('#tab3 .supGrid .card.sup:nth-child(3) .insight',
+    'Nearly all patents in the renewal registry are kept alive (~'+D.renewalRate+'%, '+(D.renewalActiveCount||'?')+' of '+(D.renewalTotal||'?')+'). High loyalty is good, but paying annuities on an overwhelmingly domestic portfolio means money is spent protecting assets that cannot be enforced where they matter — the pruning view shows where to redirect it.');
+
+  (function(){
+    var cfb=D.cf||{}, u=cfb.um6p||{}, m=cfb.morocco||{}, sa=cfb.southafrica||{};
+    if(u.top10!=null){
+      setSel('#impactInsight','UM6P has ~'+Math.round(u.top10)+'% of its patents in the top-10% most-cited, vs ~'+Math.round(m.top10)+'% for Morocco overall and ~'+Math.round(sa.top10)+'% for South Africa. The gap is real, but the portfolio’s median patent is under four years old — citations take 5–7 years to mature, so expect this to rise as the 2021–2023 cohort ages.');
+    }
+  })();
+
+  setSel('#tab6 .card.lead .insight',
+    'Industry co-filing is highly concentrated (HHI '+D.hhi+', where above 0.5 = concentrated): among filings with a named industry partner, one partner (OCP) dominates. Note this counts OCP framework-reference tags as OCP-linked, so it may over-state true co-ownership. Broadening to two or three additional industry co-inventors would materially de-risk the portfolio’s commercial routes.');
+
+  var tab1stats=document.querySelectorAll('#tab1 .supGrid .bigstat');
+  if(tab1stats.length>=2){ tab1stats[0].textContent='+'+D.cagr+'%/yr'; tab1stats[1].textContent='~'+D.avgGrantLag+' years'; }
+  var elCagr=document.getElementById('statCagr'); if(elCagr) elCagr.textContent='+'+D.cagr+'%/yr';
+  var elPct=document.getElementById('statPctIntl'); if(elPct) elPct.textContent=D.pctRate+'%';
+  var elRen=document.getElementById('statRenewal'); if(elRen) elRen.textContent='~'+D.renewalRate+'%';
+  var elOcp=document.getElementById('statOcpShare'); if(elOcp) elOcp.textContent=D.ocpShare+'%';
+  var elHhi=document.getElementById('statHhi'); if(elHhi) elHhi.textContent=D.hhi;
+  var tab3stats=document.querySelectorAll('#tab3 .supGrid .bigstat');
+  if(tab3stats.length>=3){ tab3stats[0].textContent=D.pctRate+'%'; tab3stats[1].textContent=(D.triadicShare<1?'~0':D.triadicShare)+'%'; tab3stats[2].textContent='~'+D.renewalRate+'%'; }
+  /* ---- Quality tab: real country-file values (UM6P, internationally-tracked subset) ---- */
+  var q=(D.cf&&D.cf.um6p)?D.cf.um6p:null;
+  if(q){
+    var sti=document.getElementById('statTopImpact'); if(sti) sti.textContent=Math.round(q.top10)+'%';
+    var sto=document.getElementById('statOrig'); if(sto) sto.textContent=Number(q.orig).toFixed(2);
+    var stc=document.getElementById('statScope'); if(stc) stc.textContent=Number(q.scope).toFixed(2);
+    var sts=document.getElementById('statSciProx'); if(sts) sts.textContent=Number(q.npl).toFixed(2);
+  }
+  if(D.pruneCount!=null){ var ps=document.getElementById('pruneStat'); if(ps) ps.textContent='~'+D.pruneCount; }
+
+  /* ---- Average remaining patent life (Global Coverage) ---- */
+  if(D.avgRemainingLife!=null){
+    var srl=document.getElementById('statRemLife'); if(srl) srl.textContent='~'+D.avgRemainingLife+' yrs';
+    setSel('#remLifeInsight','The active portfolio has on average ~'+D.avgRemainingLife+' years of protection left, and '+(D.expiringSoon||0)+' patents expire within 5 years. Those are the ones to commercialise or deliberately let lapse now — protection (and any licensing leverage) ends when the patent does.');
+  }
+
+  /* ---- Industry–academia collaboration mix (Partnership tab) ---- */
+  if(D.collabIndependent!=null){
+    var ct=(D.collabIndependent||0)+(D.collabIndustry||0)+(D.collabAcademic||0);
+    var pInd=ct?Math.round(100*D.collabIndependent/ct):0, pIndu=ct?Math.round(100*D.collabIndustry/ct):0;
+    setSel('#collabInsight','Most patents ('+pInd+'%) are filed independently by UM6P, '+pIndu+'% with an industry partner, and only '+D.collabAcademic+' with another university. Co-filing with industry is the route most likely to lead to commercialization — there is clear room to convert more solo filings into industry collaborations.');
+  }
+}
+
+buildExecTiles();
+
+/* ---- Real peer benchmark system: country OECD quality datasets (internationally-tracked subset) ---- */
+var CF = (D && D.cf) ? D.cf : {};
+function cfv(ent,k){ var e=CF[ent]; return (e && e[k]!=null) ? e[k] : 0; }
+var BENCH = {
+  topImpact: {key:'top10',  dec:0, suffix:'%', lower:false},
+  origIndex: {key:'orig',   dec:2, suffix:'',  lower:false},
+  scope:     {key:'scope',  dec:2, suffix:'',  lower:false},
+  intlReach: {key:'intlUS', dec:0, suffix:'%', lower:false},
+  sciProx:   {key:'npl',    dec:2, suffix:'',  lower:false}
+};
+Object.keys(BENCH).forEach(function(k){
+  var b=BENCH[k];
+  b.um = cfv('um6p', b.key);
+  b.cmp = {morocco:cfv('morocco',b.key), tunisia:cfv('tunisia',b.key), southafrica:cfv('southafrica',b.key)};
+});
+/* ---- Target system (internal UM6P targets for private-data metrics) ---- */
+var TARGET = {
+  filingsRes:     {um:3.4, target:5.0,   max:7,    dec:1, suffix:'/100 staff', lower:false},
+  disclosures:    {um:142, target:200,   max:250,  dec:0, suffix:'/yr',        lower:false},
+  deals:          {um:6,   target:15,    max:20,   dec:0, suffix:'/yr',        lower:false},
+  income:         {um:180, target:500,   max:1000, dec:0, prefix:'$', suffix:'K', lower:false},
+  incomePerPatent:{um:620, target:2000,  max:3000, dec:0, prefix:'$', suffix:'',  lower:false},
+  startups:       {um:9,   target:15,    max:25,   dec:0, suffix:'%',          lower:false},
+  commRate:       {um:17,  target:30,    max:50,   dec:0, suffix:'%',          lower:false}
+};
+var BENCH_NAMES = {morocco:'Morocco avg', tunisia:'Tunisia avg', southafrica:'South Africa avg'};
+/* Radar (Overview): UM6P vs a selected regional peer on 6 quality/impact metrics, all from the
+   country OECD datasets (same basis). Each axis normalised to the strongest of the four entities. */
+var radarMetrics = [
+  {key:'intlUS', label:'International Reach', suffix:'%'},
+  {key:'triadic',label:'Triadic Coverage',   suffix:'%'},
+  {key:'orig',   label:'Originality',         suffix:''},
+  {key:'scope',  label:'Tech Scope',          suffix:''},
+  {key:'top10',  label:'High-Impact Citations',suffix:'%'},
+  {key:'fwd5yr', label:'Forward Citations',   suffix:''}
+];
+var radarEntities = ['um6p','morocco','tunisia','southafrica'];
+function radarMax(k){ return Math.max.apply(null, radarEntities.map(function(e){return cfv(e,k);})) || 1; }
+function radarNorm(ent){ return radarMetrics.map(function(m){ return Math.round(100*cfv(ent,m.key)/radarMax(m.key)); }); }
+var currentBench = 'morocco';
+var radarChart = null;
+function fmtB(b,v){
+  var suf=b.suffix||'', num=v;
+  if(suf==='K' && v>=1000){ num=v/1000; suf='M'; }
+  return (b.prefix||'')+Number(num).toFixed(b.dec||0)+suf;
+}
+function pct(v,max){ return Math.max(2, Math.min(100, v/max*100)); }
+function benchScaleMax(b, cmpVal){
+  return (Math.max(b.um, b.cmp.morocco, b.cmp.tunisia, b.cmp.southafrica) * 1.25) || 1;
+}
+function renderBench(){
+  document.querySelectorAll('[data-bench]').forEach(function(el){
+    var b=BENCH[el.getAttribute('data-bench')]; if(!b) return;
+    var cmpVal=b.cmp[currentBench];
+    var scaleMax=benchScaleMax(b, cmpVal);
+    var umBetter=b.lower?(b.um<=cmpVal):(b.um>=cmpVal);
+    var col;
+    if(b.lower) col=umBetter?'#2D6A4F':(b.um<=cmpVal*1.15?'#E9C46A':'#B91C1C');
+    else col=umBetter?'#2D6A4F':(b.um>=cmpVal*0.85?'#E9C46A':'#B91C1C');
+    var umTxt=b.umText||fmtB(b,b.um);
+    var scaleLbl=(b.prefix||'')+'0–'+Number(scaleMax).toFixed(b.dec||0)+(b.suffix||'');
+    el.innerHTML=
+      '<div class="benchrow"><span class="benchlab">UM6P</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(b.um,scaleMax)+'%;background:'+col+'"></div></div><span class="benchout">'+umTxt+'</span></div>'+
+      '<div class="benchrow"><span class="benchlab">'+BENCH_NAMES[currentBench]+'</span><div class="benchbarbg"><div class="benchbarfill" style="width:'+pct(cmpVal,scaleMax)+'%;background:#B8B4AC"></div></div><span class="benchout">'+fmtB(b,cmpVal)+'</span></div>'+
+      '<div class="benchcaption">Scale: '+scaleLbl+(b.lower?' · lower is better':'')+'</div>';
+  });
+}
+function renderTarget(){
+  document.querySelectorAll('[data-target]').forEach(function(el){
+    var t=TARGET[el.getAttribute('data-target')]; if(!t) return;
+    // The full bar = the UM6P target. UM6P fills proportionally toward it.
+    var ratio=t.target>0?(t.um/t.target):0;
+    var umPct=Math.max(2,Math.min(100,Math.round(ratio*100)));
+    var met=t.lower?(t.um<=t.target):(t.um>=t.target);
+    var col=met?'#2D6A4F':(ratio>=0.75?'#E9C46A':'#B91C1C');
+    var umTxt=(t.prefix||'')+Number(t.um).toFixed(t.dec||0)+(t.suffix||'');
+    var tgtTxt=(t.prefix||'')+Number(t.target).toFixed(t.dec||0)+(t.suffix||'');
+    var capt=met?('Target met (target '+tgtTxt+')'):(Math.round(ratio*100)+'% of UM6P target — full bar = '+tgtTxt);
+    el.innerHTML=
+      '<div class="benchrow"><span class="benchlab">UM6P</span>'+
+      '<div class="benchbarbg"><div class="benchbarfill" style="width:'+umPct+'%;background:'+col+'"></div></div>'+
+      '<span class="benchout">'+umTxt+'</span></div>'+
+      '<div class="benchcaption" style="display:flex;justify-content:space-between"><span>'+capt+'</span><span style="font-weight:700;color:var(--text-sub)">'+tgtTxt+' ▸</span></div>';
+  });
+}
+function setBench(k){
+  currentBench=k;
+  document.querySelectorAll('.benchctrl button').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-k')===k);});
+  document.querySelectorAll('.bench-ref').forEach(function(el){el.textContent=BENCH_NAMES[k];});
+  renderBench();
+  if(radarChart){
+    radarChart.data.datasets[1].label=BENCH_NAMES[k];
+    radarChart.data.datasets[1].data=radarNorm(k);
+    radarChart.update();
+  }
+}
+
+var co={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}};
+
+var filingLabels = D ? D.filingsYears.map(String) : ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'];
+var filingMascir = D ? D.filingsMascir : [18,12,7,3,1,2,4,5,5,5,5];
+var filingTto = D ? D.filingsTto : [10,8,6,2,1,1,4,7,9,11,17];
+var filingOther = D ? D.filingsOther : [3,2,1,1,1,1,1,1,2,2,3];
+var filingIntl = D && D.filingsIntl ? D.filingsIntl : filingLabels.map(function(){return 0;});
+var labLabels = D && D.labLabels ? D.labLabels : ['MAScIR'];
+var labVals = D && D.labVals ? D.labVals : [193];
+var invNames = D && D.invLabels ? D.invLabels : [];
+var invLabs = D && D.invLabs ? D.invLabs : [];
+var invVals = D && D.invVals ? D.invVals : [];
+// Inventor chart labels carry the lab in parentheses, e.g. "BOUHFID RACHID (MAScIR)"
+var invLabels = invNames.map(function(n,i){ return invLabs[i] ? (n+'  ('+invLabs[i]+')') : n; });
+var themeYearLabels = D && D.themeYearLabels ? D.themeYearLabels.map(String) : filingLabels;
+var themeYearData = D && D.themeYear ? D.themeYear : {};
+var treemapTree = D ? D.treemap : [
+  {label:'Environmental Tech & Digital Mining',value:45},
+  {label:'Sustainable Agriculture',value:22},
+  {label:'Mineral Processing',value:25},
+  {label:'Circular Chemistry',value:12},
+  {label:'Energy & Storage',value:7}
+];
+var alignLabels = D ? D.alignLabels : ['Env. Tech & Mining','Sust. Agriculture','Mineral Processing','Circular Chemistry','Energy & Storage'];
+var alignVals = D ? D.alignVals : [25,-10,7,-8,-8];
+var citeLabels = D ? D.citeThemeLabels : alignLabels;
+var citeVals = D ? D.citeThemeVals : [0.9,0.6,0,0,0];
+var countryTree = D && D.countryTreemap && D.countryTreemap.length ? D.countryTreemap : [
+  {label:'Morocco (national)',value:171,kind:'dom'},
+  {label:'Filing country not recorded',value:127,kind:'gap'},
+  {label:'Multi-country (international)',value:29,kind:'multi'},
+  {label:'Russia',value:25,kind:'intl'},{label:'Other countries',value:74,kind:'intl'}
+];
+// Colour by route kind: domestic (orange), data gap (grey), multi-country (green), single foreign (light orange)
+var countryKindColor={dom:'#D7492A',gap:'#B8B4AC',multi:'#2D6A4F',intl:'#E8865F'};
+var countryKindByLabel={};
+countryTree.forEach(function(b){countryKindByLabel[b.label]=b.kind;});
+var partnerLabels = D ? D.partnerYears.map(String) : ['2019','2020','2021','2022','2023','2024','2025'];
+var partnerOcp = D ? D.partnerOcp : [2,3,2,2,3,2,2];
+var partnerOther = D ? D.partnerOther : [1,1,1,0,1,2,1];
+var partnerAcad = D ? D.partnerAcad : [1,0,1,1,1,0,2];
+var partnerSolo = D ? D.partnerSolo : [5,9,5,10,11,14,20];
+/* Radar — Overview: UM6P vs a regional peer on 6 quality/impact metrics (country OECD datasets).
+   Each axis is normalised to the strongest of UM6P/Morocco/Tunisia/SA; tooltip shows the raw value. */
+function radarRaw(ent,i){ return cfv(ent, radarMetrics[i].key); }
+radarChart = new Chart(document.getElementById('cRadar'),{
+  type:'radar',
+  data:{
+    labels:radarMetrics.map(function(m){return m.label;}),
+    datasets:[
+      {label:'UM6P (incl. MAScIR)',data:radarNorm('um6p'),borderColor:'#D7492A',backgroundColor:'rgba(215,73,42,.18)',borderWidth:2,pointBackgroundColor:'#D7492A',pointRadius:4},
+      {label:BENCH_NAMES[currentBench],data:radarNorm(currentBench),borderColor:'#757575',backgroundColor:'rgba(117,117,117,.06)',borderWidth:2,borderDash:[6,4],pointBackgroundColor:'#757575',pointRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'bottom',labels:{font:{family:'Montserrat',size:11},color:'#101010',boxWidth:14,padding:14}},
+      tooltip:{callbacks:{
+        title:function(items){ return radarMetrics[items[0].dataIndex].label; },
+        label:function(ctx){
+          var m=radarMetrics[ctx.dataIndex];
+          var ent=ctx.datasetIndex===0?'um6p':currentBench;
+          var raw=radarRaw(ent,ctx.dataIndex);
+          return ctx.dataset.label+': '+raw+m.suffix+'  ('+ctx.raw+'/100 vs regional best)';
+        }
+      }}
+    },
+    scales:{r:{min:0,max:100,ticks:{stepSize:25,color:'#9E9E9E',backdropColor:'transparent',font:{family:'Montserrat',size:9}},grid:{color:'rgba(0,0,0,.08)'},angleLines:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{family:'Montserrat',size:9,weight:'600'},color:'#101010'}}}}
+});
+
+/* Patent Filings — stacked bar (Tab 1) */
+new Chart(document.getElementById('cFilings'),{
+  type:'bar',
+  data:{
+    labels:filingLabels,
+    datasets:[
+      {label:'MAScIR',    data:filingMascir,  backgroundColor:'#A83218',stack:'inst'},
+      {label:'UM6P TTO',  data:filingTto, backgroundColor:'#D7492A',stack:'inst'},
+      {label:'OCP/CERPHOS',data:filingOther,    backgroundColor:'#F5C4B8',stack:'inst'},
+      {type:'line',label:'of which filed abroad',data:filingIntl,borderColor:'#2D6A4F',backgroundColor:'#2D6A4F',borderWidth:2,pointRadius:3,pointBackgroundColor:'#2D6A4F',tension:.3,fill:false}
+    ]
+  },
+  options:{...co, scales:{x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true,beginAtZero:true}},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:12}},
+      tooltip:{callbacks:{afterbody:function(items){var i=items[0].dataIndex;var ab=filingIntl[i]||0;return ab>0?'International extension this year: '+ab:'';}}}}}
+});
+
+/* Annual filing trend — last 4 years, year-on-year totals (Scale tab) */
+if(document.getElementById('cFilingTrend')){
+  var totalsByYear = filingLabels.map(function(_,i){ return (filingMascir[i]||0)+(filingTto[i]||0)+(filingOther[i]||0); });
+  var idx4 = []; for(var ti=0; ti<filingLabels.length; ti++){ if(+filingLabels[ti]>=2022 && +filingLabels[ti]<=2025) idx4.push(ti); }
+  var trLabels = idx4.map(function(i){return filingLabels[i];});
+  var trVals = idx4.map(function(i){return totalsByYear[i];});
+  new Chart(document.getElementById('cFilingTrend'),{
+    type:'bar',
+    data:{labels:trLabels,datasets:[{data:trVals,backgroundColor:'#D7492A',borderRadius:2,maxBarThickness:34}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+' filings';}}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},
+        y:{display:false,beginAtZero:true}},
+      animation:false}
+  });
+}
+
+/* Research Theme Treemap (Tab 2) */
+var themeColors={'Environmental Tech & Digital Mining':'#D7492A','Sustainable Agriculture':'#E86B4F','Mineral Processing':'#B45309','Circular Chemistry':'#A83218','Energy & Storage':'#D7492A','Health':'#B45309','AI':'#A83218','Other':'#B8B4AC'};
+new Chart(document.getElementById('cTreemap'),{
+  type:'treemap',
+  data:{datasets:[{
+    tree:treemapTree,
+    key:'value',groups:['label'],
+    backgroundColor:function(ctx){return ctx.raw&&ctx.raw._data?(themeColors[ctx.raw._data.label]||'#cbd5e1'):'#cbd5e1';},
+    borderWidth:2,borderColor:'#ffffff',spacing:1,
+    labels:{display:true,color:'#ffffff',font:{size:11,weight:'bold'},
+      formatter:function(ctx){return ctx.raw&&ctx.raw._data?[ctx.raw._data.label,ctx.raw._data.value+'%']:'';}}
+  }]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.raw._data.label+': '+ctx.raw._data.value+'%';}}}}}
+});
+
+/* Alignment Gap (Tab 2) */
+new Chart(document.getElementById('cAlignGap'),{
+  type:'bar',
+  data:{labels:alignLabels,
+    datasets:[{data:alignVals,backgroundColor:function(c){return c.raw>=0?'#D7492A':'#B8B4AC';}}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:function(ctx){var v=ctx.raw;return(v>=0?'+':'')+v+' pts vs target';}}},
+    annotation:{}},
+    scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},callback:function(v){return(v>0?'+':'')+v;}}},
+      y:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}}
+});
+
+/* Commercial Success by Theme (Tab 2) — illustrative until TTO data */
+new Chart(document.getElementById('cCommByTheme'),{
+  type:'bar',
+  data:{labels:alignLabels,
+    datasets:[{data:[14,9,22,31,11],backgroundColor:'#D7492A',borderRadius:0}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},callback:function(v){return v+'%';}}},
+      y:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}}
+});
+
+/* Forward Citations by Theme (Tab 2) — total citations across the 25-patent Orbit sample */
+new Chart(document.getElementById('cCiteByTheme'),{
+  type:'bar',
+  data:{labels:citeLabels,
+    datasets:[{data:citeVals,backgroundColor:'#E86B4F',borderRadius:0}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x+' forward citations';}}}},
+    scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},stepSize:1}},
+      y:{grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}}}
+});
+
+/* Country Coverage — treemap (Tab 3). Every application counted once; boxes sum to total portfolio. */
+var countryTotalForPct = countryTree.reduce(function(a,b){return a+b.value;},0);
+new Chart(document.getElementById('cCountryTreemap'),{
+  type:'treemap',
+  data:{datasets:[{
+    tree:countryTree,
+    key:'value',groups:['label'],
+    backgroundColor:function(ctx){if(!ctx.raw||!ctx.raw._data)return'#E8865F';var k=countryKindByLabel[ctx.raw._data.label];return countryKindColor[k]||'#E8865F';},
+    borderWidth:2,borderColor:'#ffffff',spacing:1,
+    labels:{display:true,color:'#ffffff',font:{size:11,weight:'bold'},
+      formatter:function(ctx){
+        if(!ctx.raw||!ctx.raw._data)return'';
+        var d=ctx.raw._data, pctv=Math.round(100*d.value/countryTotalForPct);
+        // only label boxes large enough to read; show count + share for the big ones
+        if(d.value>=20) return [d.label, d.value+' · '+pctv+'%'];
+        if(d.value>=7)  return [d.label, ''+d.value];
+        return '';
+      }}
+  }]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:function(ctx){var d=ctx.raw._data;return d.label+': '+d.value+' applications ('+Math.round(100*d.value/countryTotalForPct)+'%)';}}}}}
+});
+
+/* Industry Partnership Trend — stacked bar (Tab 6) */
+new Chart(document.getElementById('cPartnerTrend'),{
+  type:'bar',
+  data:{
+    labels:partnerLabels,
+    datasets:[
+      {label:'With OCP Group',          data:partnerOcp,  backgroundColor:'#7A2512'},
+      {label:'With another company',    data:partnerOther,backgroundColor:'#C0451F'},
+      {label:'With a university',        data:partnerAcad, backgroundColor:'#E8865F'},
+      {label:'UM6P only (no co-filer)',  data:partnerSolo, backgroundColor:'#F7D3C4'}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:10}}},
+    scales:{
+      x:{stacked:true,grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},
+      y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}}
+    }}
+});
+
+/* Industry–Academia collaboration mix — doughnut (Tab 6) */
+if(document.getElementById('cCollabMix') && D){
+  new Chart(document.getElementById('cCollabMix'),{
+    type:'doughnut',
+    data:{labels:['Filed independently','With an industry partner','With another university'],
+      datasets:[{data:[D.collabIndependent||0,D.collabIndustry||0,D.collabAcademic||0],
+        backgroundColor:['#EDEAE4','#D7492A','#2D6A4F'],borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'right',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){var t=ctx.dataset.data.reduce(function(a,b){return a+b;},0);return ctx.label+': '+ctx.parsed+' ('+Math.round(100*ctx.parsed/t)+'%)';}}}}}
+  });
+}
+
+/* Top Labs by filings — horizontal bar, stacked by legal status (Labs & Inventors tab) */
+if(document.getElementById('cLabs')){
+  var labStatus = D && D.labStatus ? D.labStatus : [{label:'Patents',data:labVals}];
+  var statusColor={'Granted / active':'#2D6A4F','Pending':'#E9C46A','Lapsed / rejected':'#B91C1C','Not recorded':'#B8B4AC'};
+  new Chart(document.getElementById('cLabs'),{
+    type:'bar',
+    data:{labels:labLabels,datasets:labStatus.map(function(s){return {label:s.label,data:s.data,backgroundColor:(statusColor[s.label]||'#E8865F'),borderWidth:0};})},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:9},boxWidth:9,padding:8}},
+        tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.x;}}}},
+      scales:{x:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},border:{display:false}},
+        y:{stacked:true,grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:11,weight:'600'}},border:{display:false}}}}
+  });
+}
+
+/* Most active inventors / PIs — horizontal bar (Labs & Inventors tab) */
+if(document.getElementById('cInventors')){
+  new Chart(document.getElementById('cInventors'),{
+    type:'bar',
+    data:{labels:invLabels,datasets:[{data:invVals,backgroundColor:'#E86B4F',borderWidth:0}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x+' patents (named inventor)';}}}},
+      scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10},stepSize:2},border:{display:false}},
+        y:{grid:{display:false},ticks:{color:'#101010',font:{family:'Montserrat',size:10,weight:'600'}},border:{display:false}}}}
+  });
+}
+
+/* Theme momentum — stacked area over time (Research Themes tab) */
+if(document.getElementById('cThemeMomentum')){
+  var momColors={'Environmental Tech':'#D7492A','Sustainable Agriculture':'#E8865F','Mineral Processing':'#B45309','Circular Chemistry':'#A83218','Energy & Storage':'#2D6A4F'};
+  var momSets=Object.keys(themeYearData).map(function(k){
+    return {label:k,data:themeYearData[k],backgroundColor:(momColors[k]||'#B8B4AC'),borderColor:(momColors[k]||'#B8B4AC'),fill:true,tension:.3,pointRadius:0,borderWidth:1};
+  });
+  new Chart(document.getElementById('cThemeMomentum'),{
+    type:'line',
+    data:{labels:themeYearLabels,datasets:momSets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Montserrat',size:10},boxWidth:10,padding:10}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#757575',font:{family:'Montserrat',size:10}}},
+        y:{stacked:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#757575',font:{family:'Montserrat',size:10}},title:{display:true,text:'Filings per year',font:{family:'Montserrat',size:10},color:'#9E9E9E'}}}}
+  });
+}
+
+/* ---- Deep-dive data (from dashboard_data.js) ---- */
+var DEEPDIVE = (D && D.deepdives) ? D.deepdives : {};
+
+function openDive(key){
+  var d=DEEPDIVE[key]; if(!d) return;
+  document.getElementById('diveTitle').innerText=d.title;
+  document.getElementById('diveSub').innerText=d.sub;
+  var badge=document.getElementById('diveBadge');
+  badge.className='modal-badge '+(d.illustrative?'sb-illus':'sb-avail');
+  badge.innerText=d.illustrative?'Illustrative':'Tracked now';
+  document.getElementById('diveHead').innerHTML='<th class="dive-rank">#</th>'+d.cols.map(function(c){return'<th>'+c+'</th>';}).join('');
+  if(!d.rows || !d.rows.length){
+    document.getElementById('diveBody').innerHTML='<tr><td colspan="'+(d.cols.length+1)+'" style="color:var(--text-sub);font-size:.85rem">No records yet — this drill-down awaits source data.</td></tr>';
+  } else {
+    document.getElementById('diveBody').innerHTML=d.rows.map(function(r,i){
+      return'<tr><td class="dive-rank">'+(i+1)+'</td>'+r.map(function(v){return'<td>'+v+'</td>';}).join('')+'</tr>';
+    }).join('');
+  }
+  document.getElementById('diveModal').classList.add('open');
+}
+function closeDive(){document.getElementById('diveModal').classList.remove('open');}
+
+/* ---- Selector deep-dives: browse latest 10 patents by theme (#7) or country (#11) ---- */
+var SELCFG = {
+  theme:  {title:'Browse Patents by Research Theme', sub:'Latest 10 patents in the selected theme',
+           label:'Theme', cols:['Patent title','Year','Researcher(s)','Centre','Status'],
+           list:(D&&D.themeList)||[], data:(D&&D.themePatents)||{}},
+  country:{title:'Browse Patents by Filing Country', sub:'Latest 10 applications filed in the selected country/route',
+           label:'Country', cols:['Patent title','Year','Theme'],
+           list:(D&&D.countryList)||[], data:(D&&D.countryPatents)||{}},
+  lab:    {title:'Browse Patents by Lab', sub:'Latest 10 patents from the selected lab / hub',
+           label:'Lab', cols:['Patent title','Year','Researcher(s)','Theme'],
+           list:(D&&D.labList)||[], data:(D&&D.labPatents)||{}}
+};
+var selCurrent=null;
+function openSelect(kind){
+  var c=SELCFG[kind]; if(!c) return;
+  selCurrent=kind;
+  document.getElementById('selTitle').innerText=c.title;
+  document.getElementById('selSub').innerText=c.sub;
+  document.getElementById('selLabel').innerText=c.label+':';
+  var dd=document.getElementById('selDropdown');
+  dd.innerHTML=c.list.map(function(g){return '<option value="'+g.label.replace(/"/g,'&quot;')+'">'+g.label+' ('+g.count+')</option>';}).join('');
+  document.getElementById('selHead').innerHTML='<th class="dive-rank">#</th>'+c.cols.map(function(x){return '<th>'+x+'</th>';}).join('');
+  renderSel();
+  document.getElementById('selModal').classList.add('open');
+}
+function renderSel(){
+  var c=SELCFG[selCurrent]; if(!c) return;
+  var key=document.getElementById('selDropdown').value;
+  var rows=c.data[key]||[];
+  document.getElementById('selBody').innerHTML = rows.length
+    ? rows.map(function(r,i){return '<tr><td class="dive-rank">'+(i+1)+'</td>'+r.map(function(v){return '<td>'+v+'</td>';}).join('')+'</tr>';}).join('')
+    : '<tr><td colspan="'+(c.cols.length+1)+'" style="color:var(--text-sub);font-size:.85rem">No patents recorded for this selection.</td></tr>';
+}
+function closeSel(){document.getElementById('selModal').classList.remove('open');}
+
+applyLiveMetrics();
+renderBench();
+renderTarget();
+placeBenchCtrl('0');
+
+document.querySelectorAll('.card').forEach(function(card){
+  var badge=card.querySelector(':scope > .statusbadge');
+  if(!badge) badge=card.querySelector('.statusbadge');
+  if(badge) card.appendChild(badge);
+});
+</script>
+</body>
+</html>
+
