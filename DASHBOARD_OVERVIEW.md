@@ -40,21 +40,28 @@ So when you see "Illustrative," read it as *"this is where a real number will go
 
 One more nuance worth knowing: **volume, themes and coverage** cover the **full 426 patents**, but the **quality-vs-peers comparison** is based on a **small international sample (~28 patents)** — the only ones that show up in global quality databases. That comparison is a useful *direction*, not a final verdict.
 
+The dashboard also **documents itself**. The strip under the title has three pop-ups: **Methods & Sources** (how every number is calculated and where it comes from), a **Glossary** (a plain-language definition of every metric), and an **AI Transparency** note (how it was built and how accuracy is protected). If a number ever seems surprising, those are the first place to look.
+
 ---
 
-## The five things to actually pay attention to
+## The five key insights
 
-If you take away only a handful of points, make them these:
+If you take away only five things, make them these.
 
-1. **International protection is the #1 gap.** Only ~8% of patents are filed beyond Morocco, versus ~12% for Morocco overall and ~37% for South Africa. A patent that only exists in Morocco cannot be enforced anywhere its technology would actually be sold.
+**1. Volume — UM6P is filing at record pace, and the pipeline is now home-grown.**
+The portfolio stands at **426 patents**, and filing is genuinely accelerating: **2025 was a record year with 25 filings** (up from 18 in 2024), the **third straight year of growth**, at roughly **+14% per year**. Just as important as the count is *who* is filing — origination has shifted from the older MAScIR portfolio to UM6P's own labs, so this is a structural build-up rather than a one-off spike. About **47% (≈201) of the 426 are granted or actively maintained**; the rest are still pending or unrecorded, so the true grant figure is a conservative floor.
 
-2. **Momentum is real and in-house.** Filings are at a record and increasingly come from UM6P's own labs — the pipeline is genuinely accelerating, not a blip.
+**2. Research themes — the portfolio is concentrated in UM6P's founding strengths, and the leading edge is starting to move.**
+Nearly half the portfolio — **44% (~192 patents) — sits in Environmental Tech & Digital Mining**, with **Mineral Processing at 25% (~105)** close behind: a heavy tilt toward phosphate, mining and environmental chemistry, UM6P's roots. Green Agriculture (**12%**), Circular Chemistry (**12%**) and Energy & Storage (**7%**) make up the rest. The *momentum* view shows the newest filings shifting toward **batteries, CO₂ capture and circular chemistry** — an early signal of where IP and commercialization support will be needed next. (Each patent carries a single UM6P theme tag, so read the shares as indicative.)
 
-3. **Quality is average, not a standout — yet.** UM6P sits mid-pack among regional peers on originality and breadth, and low on citation impact. Much of that is because the patents are young (citations take 5–7 years to build), so this is a "watch this space" rather than a red flag.
+**3. Coverage — international protection is the single biggest gap.**
+Only about **8% of applications are filed beyond Morocco**, and **essentially none hold full Europe + US + Japan (triadic) protection**. The vast majority are protected only where UM6P invents, not where the technologies would actually be sold — and a Morocco-only patent cannot be enforced abroad. On the internationally-tracked patents, UM6P reaches the US on **~2%**, versus **~12% for Morocco overall and ~37% for South Africa**. Closing even part of this gap on the highest-impact patents is the highest-leverage international move available.
 
-4. **The portfolio is aging and concentrated.** Active patents have ~10 years of protection left on average, a handful expire within 5 years, and there are ~72 old, Morocco-only patents still being paid for. These are decisions waiting to be made: commercialise, extend, or let lapse.
+**4. Quality — middle-of-the-pack regionally, with a "too young to tell" asterisk.**
+On the ~28 internationally-tracked UM6P patents, the picture is mixed. **Technology scope is on par with peers (0.34)**, but **originality (0.63) sits below the Morocco average (0.82)**, and citation impact is low: only about **5% of patents rank in the top-10% most-cited**, versus **~19% for Morocco and ~26% for South Africa**. Much of this is age — the median patent is **under four years old**, and citations take 5–7 years to accumulate — so this is a "watch this space" as the 2021–2023 cohort matures, not yet a verdict. (This lens is a small international slice, not the full 426.)
 
-5. **We depend on one partner and one funnel narrows sharply.** Industry collaboration runs almost entirely through OCP, and very few patents reach a commercial licence. Broadening partners and working the existing portfolio matter more than simply filing more.
+**5. Value — turning patents into value now matters more than filing more.**
+The active portfolio has on average **~9.8 years of protection left**, with **7 patents expiring within five years** and **~72 old, Morocco-only patents still incurring renewal fees** — each a decision waiting to be made (commercialise, extend abroad, or let lapse). Meanwhile **85% of patents are filed with no external partner**, industry collaboration runs almost entirely through **one partner (OCP; concentration index 0.58)**, and licensing/revenue data is not yet available. The opportunity is less about volume and more about **working the portfolio you already have** — through partners, international extension and active licensing.
 
 ---
 

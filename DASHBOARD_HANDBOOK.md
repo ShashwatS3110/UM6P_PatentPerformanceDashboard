@@ -41,6 +41,16 @@ A few principles shaped every choice:
 
 **Controls:** the "Compare against" toggle (Overview & Quality tabs) switches the peer country. Cards with a "🔍" open a drill-down of the underlying patents; some let you pick a theme, country or lab.
 
+**Built-in documentation (the strip under the title).** Every copy of the dashboard carries its own transparency layer, so a reader never has to leave the page:
+
+- **Data updated** — the build date, shown top-right and in the footer; it refreshes automatically each time the data is rebuilt.
+- **Methods & Sources** — a pop-up explaining, for every metric, how it is computed and which source it comes from, plus the two-lens scope, the full caveat list, and a reproducibility note. (This is the on-page home for the source detail — it is intentionally kept out of the individual insight text.)
+- **Glossary** — a plain-language definition of every metric and term, grouped by tab.
+- **AI Transparency** — how the dashboard was built with AI assistance, the verification practices, and a note that the written commentary is AI-generated interpretation that should be re-reviewed when the data changes materially.
+- **Source code** — a link to this repository.
+
+A **footer credit line** names the author and supporting institutions, discloses the AI assistance, and points to GitHub Issues for corrections. Each tab also has a small **"Methods ↗"** link that jumps straight to that tab's section of the Methods pop-up.
+
 ---
 
 ## 4. How the data system is built
@@ -111,16 +121,49 @@ That's it — no code, no manual editing. If a file is missing or misnamed, the 
 
 ---
 
-## 9. Project files at a glance
+## 9. Project files — every file explained
+
+**What you open / run**
 
 | File | What it is |
 |---|---|
-| `UM6P_Dashboard.html` | **The dashboard** — open this. Regenerated on every refresh. |
-| `um6p_dashboard_v3.html` | The source template (edit only if changing design). |
-| `dashboard_data.js` | All computed numbers (auto-generated — do not edit by hand). |
-| `scripts/build_dashboard_data.ps1` | The engine that turns data files into numbers. |
-| `scripts/refresh_dashboard.ps1` | The refresh routine (validate → build → standalone). |
-| `Refresh Dashboard.bat` / `View Dashboard.bat` | Double-click helpers. |
-| `File 3…` etc. + the three country CSVs | The source data. |
+| `UM6P_Dashboard.html` | **The dashboard — open this.** A self-contained copy with the data baked in. Regenerated on every refresh; safe to email or upload anywhere. |
+| `View Dashboard.bat` | Double-click to open `UM6P_Dashboard.html` in your browser. |
+| `Refresh Dashboard.bat` | Double-click to rebuild the dashboard after you replace a data file. |
+
+**The engine (only touch if changing how it works)**
+
+| File | What it is |
+|---|---|
+| `um6p_dashboard_v3.html` | The design/source template — all the layout, charts, tabs and the Methods/Glossary/AI pop-ups live here. Edit only to change the dashboard itself; the standalone above is generated from it. |
+| `dashboard_data.js` | Every computed number and drill-down list, written by the build script. **Auto-generated — never edit by hand** (a refresh overwrites it). |
+| `scripts/build_dashboard_data.ps1` | The engine: reads the source data files and computes every metric into `dashboard_data.js`. |
+| `scripts/refresh_dashboard.ps1` | The refresh routine that `Refresh Dashboard.bat` runs — validates the files, runs the build script, then bakes the data into `UM6P_Dashboard.html`. |
+
+**Source data — the raw truth (replace these to update the dashboard; keep the exact names)**
+
+| File | What it contains | Feeds |
+|---|---|---|
+| `File 3 - Master Dashboard + Dataset - UM6P - Morocco-only.xlsx` | **The core inventory** — all 426 patents: theme, legal status, geography, lab/hub, inventors, partners, filing dates | Filings, themes, coverage, labs, inventors, collaboration, pruning, remaining life, grant rate |
+| `File 4 - UM6P Patents Data - Raw - Morocco-only.xlsx` | Raw TTO filing export (entities, partners, OMPIC status) | Supplements File 3; OCP-linked filing lists |
+| `File 5 - Patent Renewal Data - MAScIR - Morocco-only.xlsx` | MAScIR renewal registry — filing + grant dates and annuity status | Time-to-grant, portfolio survival rate, longest-active patents |
+| `File 6 - Patent Family Data - Escapenet - International.xlsx` | International patent families — technology classes and jurisdictions | Triadic coverage, technology breadth, most-globally-protected list |
+| `File 7 - Citation Data - Orbit - International.xlsx` | Forward-citation export for internationally-indexed patents (~25) | Forward citations, most-cited lists, citations-by-theme |
+| `File 8 - PCT - WIPO - International.xls` | WIPO PCT / national-phase records | International (PCT) filing counts |
+| `morocco_assignees_tech_patent_counts.csv` | National patent-quality indicators for Morocco (all assignees) | Morocco peer benchmark + UM6P's own quality figures |
+| `tunisia_assignees_tech_patent_counts.csv` | Same, for Tunisia | Tunisia peer benchmark |
+| `south_africa_assignees_tech_patent_counts.csv` | Same, for South Africa | South Africa peer benchmark |
+| `UM6P Dashboard Structure - June 16, 2026.xlsx` | The original indicator design — the list of indicators, chart logic and insight rules the dashboard was built from | Reference only (not read by the build script) |
+
+**Documentation**
+
+| File | What it is |
+|---|---|
+| `DASHBOARD_OVERVIEW.md` | 2-page plain-language guide — what the dashboard says and the key insights. Start here. |
+| `DASHBOARD_HANDBOOK.md` | This document — the full technical + maintenance guide. |
+| `README.md` | The GitHub landing page: quick view/update instructions and links to both docs. |
+| `.gitignore` | Housekeeping — tells the repository which files to track. |
+
+*Note:* `scripts/serve.ps1` may also be present — a small local-preview web server used during development. The team does not need it (the standalone `UM6P_Dashboard.html` opens directly).
 
 **Repository:** github.com/ShashwatS3110/UM6P_PatentPerformanceDashboard
