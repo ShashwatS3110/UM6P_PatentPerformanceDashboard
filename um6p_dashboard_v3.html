@@ -141,6 +141,30 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
 .dive-table td{padding:9px 10px;border-bottom:1px solid var(--border-color)}
 .dive-table tr:hover td{background:var(--orange-light)}
 .dive-rank{font-weight:800;color:var(--orange);width:26px}
+/* --- Meta strip (data updated + methods/glossary/AI/source links) --- */
+.meta-strip{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.76rem;color:var(--text-sub);padding:10px 0 16px;margin-bottom:6px;border-bottom:1px solid var(--border-color)}
+.meta-strip .meta-updated b{color:var(--text-main);font-weight:700}
+.meta-links{display:flex;flex-wrap:wrap;gap:16px}
+.meta-links a{color:var(--text-sub);cursor:pointer;font-weight:600;text-decoration:none;border-bottom:1px dotted var(--text-muted)}
+.meta-links a:hover{color:var(--orange);border-bottom-color:var(--orange)}
+.howread{font-size:.8rem;color:var(--text-sub);background:var(--orange-light);border:1px solid var(--orange-pale);padding:9px 14px;margin-bottom:20px;line-height:1.5}
+.howread b{color:var(--orange-dark)}
+.methods-link{font-size:.72rem;font-weight:600;color:var(--text-muted);cursor:pointer;border:none;background:transparent;text-decoration:none;border-bottom:1px dotted var(--text-muted);margin-left:10px;white-space:nowrap}
+.methods-link:hover{color:var(--orange);border-bottom-color:var(--orange)}
+/* --- Info modal content (methods / glossary / AI note) --- */
+.info h4{font-size:.95rem;font-weight:700;color:var(--text-main);margin:20px 0 8px;padding-top:14px;border-top:1px solid var(--border-color);letter-spacing:-.01em}
+.info h4:first-of-type{border-top:none;padding-top:0;margin-top:8px}
+.info p{font-size:.85rem;color:var(--text-sub);line-height:1.6;margin-bottom:10px}
+.info ul{margin:0 0 12px 2px;padding:0;list-style:none}
+.info li{font-size:.84rem;color:var(--text-sub);line-height:1.55;margin-bottom:7px;padding-left:14px;position:relative}
+.info li:before{content:"–";position:absolute;left:0;color:var(--orange)}
+.info li b{color:var(--text-main);font-weight:700}
+.info .src{color:var(--orange-dark);font-style:italic}
+.info .gloss-tab{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);margin:16px 0 6px}
+/* --- Footer credit --- */
+.site-footer{margin-top:8px;padding:22px 0 8px;border-top:2px solid var(--orange);font-size:.8rem;color:var(--text-sub);line-height:1.6}
+.site-footer a{color:var(--orange-dark);cursor:pointer;font-weight:600;text-decoration:none;border-bottom:1px dotted var(--orange-pale)}
+.site-footer a:hover{border-bottom-color:var(--orange)}
 @media(max-width:768px){
   .root{padding:0 16px 36px}
   .header-inner{padding:16px;flex-direction:column;align-items:flex-start;gap:16px}
@@ -168,10 +192,20 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
   <div class="header-accent"></div>
 </div>
 <div class="root">
+  <div class="meta-strip">
+    <span class="meta-updated">Data updated: <b id="metaUpdated">—</b></span>
+    <span class="meta-links">
+      <a onclick="openInfo('methods')">Methods &amp; Sources</a>
+      <a onclick="openInfo('glossary')">Glossary</a>
+      <a onclick="openInfo('ai')">AI Transparency</a>
+      <a href="https://github.com/ShashwatS3110/UM6P_PatentPerformanceDashboard" target="_blank" rel="noopener">Source code ↗</a>
+    </span>
+  </div>
   <div class="tabs" id="tabbar"></div>
 
   <!-- TAB 0: OVERVIEW -->
   <div class="view on" id="tab0">
+    <div class="howread"><b>How to read this:</b> every tile is badged <b>Tracked now</b> (real data) or <b>Illustrative</b> (placeholder awaiting data). The <b>Compare against</b> toggle switches the peer country. Cards with a <i class="ti ti-list-search" style="vertical-align:-2px"></i> icon open the underlying patents. See <a onclick="openInfo('methods')" style="color:var(--orange-dark);cursor:pointer;font-weight:600">Methods &amp; Sources</a> for how each number is computed.</div>
     <div class="section-kicker">At a Glance</div>
     <div class="subq">Where is the portfolio strong, and where is it stalling?</div>
     <div class="card lead" style="margin-bottom:24px">
@@ -550,6 +584,10 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
     <span><span class="sb-illus" style="padding:2px 8px;font-weight:700">Illustrative</span> placeholder</span>
     <span><i class="ti ti-list-search" style="vertical-align:-2px"></i> Click cards with drill hints for ranked lists</span>
   </div>
+
+  <div class="site-footer">
+    Built and edited by <b>Shashwat Shah</b>, with the support of <b>Harvard Growth Labs</b> and the <b>UM6P Technology Transfer Office</b>, with <b>AI assistance (Claude, Anthropic)</b> — see the <a onclick="openInfo('ai')">AI-transparency note</a>. Corrections and questions: <a href="https://github.com/ShashwatS3110/UM6P_PatentPerformanceDashboard/issues" target="_blank" rel="noopener">open an issue</a>. · <a onclick="openInfo('methods')">Methods &amp; Sources</a> · <a onclick="openInfo('glossary')">Glossary</a> · Data updated: <span id="footUpdated">—</span>
+  </div>
 </div>
 
 <div id="benchctrl" class="benchctrl">
@@ -586,6 +624,191 @@ body{font-family:var(--font-sans);background:var(--bg-main);color:var(--text-mai
       <thead><tr id="selHead"></tr></thead>
       <tbody id="selBody"></tbody>
     </table>
+  </div>
+</div>
+
+<!-- ===== Methods & Sources modal ===== -->
+<div class="modal-overlay" id="methodsModal" onclick="closeInfo('methods')">
+  <div class="modal info" id="methodsBody" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeInfo('methods')">&times;</button>
+    <div class="modal-title">Methods &amp; Sources</div>
+    <div class="modal-sub">How every number on this dashboard is calculated, and where the data comes from.</div>
+
+    <h4 id="m-overview">What this dashboard answers</h4>
+    <p>Whether UM6P is building a patent portfolio that is high-quality, well-protected internationally, and generating economic value.</p>
+
+    <h4>How to read it — two things to know</h4>
+    <ul>
+      <li><b>Every tile is badged.</b> <b>Tracked now</b> = computed from real data. <b>Illustrative</b> = a labelled placeholder shown so the layout is complete; it becomes real automatically once its data source is added. Nothing invented is presented as verified.</li>
+      <li><b>Two lenses, kept separate.</b> Volume, themes, coverage, labs and collaboration use the <b>full 426-patent inventory</b>. Quality and peer benchmarking use an <b>internationally-tracked subset (~28 UM6P patents)</b> — the only ones that appear in international quality databases — and are <b>directional</b>, not a full-portfolio verdict.</li>
+    </ul>
+    <p>The radar compares six quality/impact metrics for UM6P vs a selected regional peer, each axis normalised so the strongest of the four countries reaches 100. <span class="src">Source: national patent-quality datasets.</span></p>
+
+    <h4 id="m-scale">Scale &amp; Momentum</h4>
+    <ul>
+      <li><b>Patent Filings</b> — count of applications per year, split by originating institution. <span class="src">Master inventory.</span></li>
+      <li><b>Annual Filing Growth</b> — 3-year compound annual growth rate of dated filings (2022→2025), with the year-by-year trend. <span class="src">Master inventory.</span></li>
+      <li><b>Time to Patent Grant</b> — average of (grant date − filing date) over patents with both dates. <span class="src">MAScIR renewal registry.</span></li>
+      <li><b>Idea-to-Revenue funnel</b> — filed and granted stages are real (application count; granted/maintained status); disclosure and licensing stages are illustrative.</li>
+    </ul>
+
+    <h4 id="m-labs">Labs &amp; Inventors</h4>
+    <ul>
+      <li><b>Patents by Lab, by status</b> — count per originating lab/hub, split into granted-active / pending / lapsed-rejected / not-recorded. <span class="src">Master inventory.</span></li>
+      <li><b>Most Active Inventors / Top Researchers</b> — patents per named inventor (co-inventors split), with their main lab and domain. <span class="src">Master inventory.</span></li>
+    </ul>
+
+    <h4 id="m-themes">Research Themes</h4>
+    <ul>
+      <li><b>Theme distribution &amp; momentum</b> — patent counts per theme, overall and per year. <span class="src">Master inventory — UM6P's own theme tags.</span></li>
+      <li><b>Portfolio vs Strategy</b> — each theme's share minus a target weight. <b>The target weights are placeholder assumptions</b> pending UM6P's declared R&amp;D allocation.</li>
+      <li><b>Forward Citations by Theme</b> — total forward citations per theme across the international citation sample (~25 patents). <span class="src">Citation export.</span></li>
+    </ul>
+
+    <h4 id="m-global">Global Coverage</h4>
+    <ul>
+      <li><b>Filing Countries</b> — each application counted once by its primary filing route; a missing country is shown as a data gap, not assumed domestic. <span class="src">Master inventory.</span></li>
+      <li><b>International Filing Rate</b> — share of applications filed beyond Morocco (PCT/foreign). <span class="src">Master inventory.</span></li>
+      <li><b>Top-Market (Triadic) Coverage</b> — share of families protected in Europe + US + Japan together. <span class="src">Patent-family data.</span></li>
+      <li><b>Portfolio Survival Rate</b> — share of the renewal registry still paying annuities. <span class="src">MAScIR renewal registry.</span></li>
+      <li><b>Average Remaining Patent Life</b> — 20 years minus current age, averaged over active patents with a known filing date. <span class="src">Master inventory.</span></li>
+    </ul>
+
+    <h4 id="m-quality">Portfolio Quality <span style="font-weight:400;color:var(--text-muted)">(international subset)</span></h4>
+    <ul>
+      <li><b>High-Impact (top-10% cited), Originality, Technology Scope, Science Linkage</b> — standard patent-quality indicators for UM6P vs the Morocco / Tunisia / South Africa averages, patent-weighted, on the international subset. <span class="src">National patent-quality datasets.</span></li>
+      <li><b>Forward Citations per patent</b> — average forward citations across ~25 internationally-indexed patents. <span class="src">Citation export.</span></li>
+    </ul>
+
+    <h4 id="m-comm">Commercialization</h4>
+    <ul>
+      <li><b>Pruning Candidates</b> — patents 10+ years old, protected only in Morocco, still maintained. <span class="src">Master inventory.</span></li>
+      <li><b>Commercialization rate, deals, revenue</b> — illustrative, pending a TTO licensing/deal registry.</li>
+    </ul>
+
+    <h4 id="m-partner">Industrial Partnership &amp; Ventures</h4>
+    <ul>
+      <li><b>Industry Concentration (HHI)</b> — Herfindahl-Hirschman index of co-filing partners (0 = diversified, 1 = one partner). <span class="src">Master inventory partner fields.</span></li>
+      <li><b>Industry–Academia Collaboration</b> — every patent classified as filed independently, with an industry partner, or with another university. <span class="src">Master inventory.</span></li>
+      <li><b>Spin-offs &amp; patent-to-startup</b> — illustrative, pending a venture registry.</li>
+    </ul>
+
+    <h4>Data sources</h4>
+    <ul>
+      <li><b>UM6P patent master inventory</b> — the consolidated TTO/OMPIC record of all 426 patents.</li>
+      <li><b>MAScIR renewal registry</b> — filing/grant dates and annuity status for the legacy portfolio.</li>
+      <li><b>Espacenet patent-family data</b> — international family members, technology classes, jurisdictions.</li>
+      <li><b>Orbit citation export</b> — forward citations for the internationally-indexed subset.</li>
+      <li><b>WIPO PCT records</b> — international filing / national-phase data.</li>
+      <li><b>National patent-quality datasets (Morocco, Tunisia, South Africa)</b> — OECD-style patent-quality indicators used for peer benchmarking.</li>
+    </ul>
+
+    <h4>Caveats &amp; limitations</h4>
+    <ul>
+      <li>~127 patents have no filing country recorded, ~69 no legal status, ~35 no filing year — so the grant rate is a <b>conservative floor</b> and coverage is understated.</li>
+      <li>Grant, survival and time-to-grant come from the MAScIR renewal registry only, not the full portfolio.</li>
+      <li>Quality/peer figures rest on a small international sample (~28 patents) and effectively stop around 2023.</li>
+      <li>Themes are UM6P's own single tag per patent; cross-cutting inventions sit in one bucket.</li>
+      <li>OCP concentration may be over-stated — framework-reference tags are counted as OCP-linked.</li>
+      <li>Peer benchmarks currently exist for quality metrics only.</li>
+    </ul>
+
+    <h4>Reproducibility</h4>
+    <p>Every "Tracked now" figure is produced by a published, re-runnable script directly from the source files above — replace a data file and re-run to update the whole dashboard. Corrections and questions: <a href="https://github.com/ShashwatS3110/UM6P_PatentPerformanceDashboard/issues" target="_blank" rel="noopener" style="color:var(--orange-dark);font-weight:600">open an issue</a>.</p>
+  </div>
+</div>
+
+<!-- ===== Glossary modal ===== -->
+<div class="modal-overlay" id="glossaryModal" onclick="closeInfo('glossary')">
+  <div class="modal info" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeInfo('glossary')">&times;</button>
+    <div class="modal-title">Glossary &amp; Metric Dictionary</div>
+    <div class="modal-sub">Every term and metric on the dashboard, in plain language.</div>
+
+    <div class="gloss-tab">General terms</div>
+    <ul>
+      <li><b>Tracked now / Illustrative</b> — a real computed figure vs. a labelled placeholder awaiting data.</li>
+      <li><b>Internationally-tracked subset</b> — the ~28 UM6P patents that appear in international patent databases (used for the quality comparison); the other lens is the full 426-patent inventory.</li>
+      <li><b>Forward citations</b> — how often later patents cite this one; the standard proxy for technological influence.</li>
+      <li><b>Annuity / renewal</b> — the recurring fee to keep a granted patent in force; patents lapse if unpaid.</li>
+      <li><b>PCT</b> — the international treaty route for filing one application across many countries at once.</li>
+    </ul>
+    <div class="gloss-tab">Overview</div>
+    <ul><li><b>Quality &amp; Impact radar</b> — six quality/impact measures for UM6P vs a selected regional peer; each axis normalised so the strongest of the four countries reaches 100.</li></ul>
+    <div class="gloss-tab">Scale &amp; Momentum</div>
+    <ul>
+      <li><b>Patent Filings</b> — new applications filed per year, split by originating institution.</li>
+      <li><b>Annual Filing Growth (CAGR)</b> — compound annual growth rate of filings over the last three years.</li>
+      <li><b>Patent Output per Researcher</b> — applications filed per 100 active researchers.</li>
+      <li><b>Time to Patent Grant</b> — average years from filing to the office granting it.</li>
+      <li><b>Annual Invention Disclosures</b> — ideas submitted to the TTO before any filing (top of the pipeline).</li>
+      <li><b>Idea-to-Revenue Funnel</b> — cumulative counts at each stage: projects → disclosures → filings → grants → licences.</li>
+    </ul>
+    <div class="gloss-tab">Labs &amp; Inventors</div>
+    <ul>
+      <li><b>Patents by Lab / Hub</b> — patents per originating lab, split by legal status.</li>
+      <li><b>Most Active Inventors / PIs</b> — inventors credited on the most patents, with their main lab.</li>
+      <li><b>Top Researchers by Output</b> — the same ranking with each researcher's lab and main domain.</li>
+    </ul>
+    <div class="gloss-tab">Research Themes</div>
+    <ul>
+      <li><b>Patent Portfolio by Research Theme</b> — share of the portfolio in each of UM6P's five themes.</li>
+      <li><b>Research Theme Momentum</b> — filings per theme per year (direction of travel).</li>
+      <li><b>Portfolio vs Declared Strategy</b> — each theme's share minus its target weight (targets are placeholders).</li>
+      <li><b>Commercial Success by Theme</b> — share of each theme's patents on a commercial path (illustrative).</li>
+      <li><b>Forward Citations by Theme</b> — total forward citations landing in each theme, across the international sample.</li>
+    </ul>
+    <div class="gloss-tab">Global Coverage</div>
+    <ul>
+      <li><b>Patent Filing Countries</b> — where each application is protected, counted once by primary route.</li>
+      <li><b>International Filing Rate</b> — share of applications filed beyond Morocco.</li>
+      <li><b>Top-Market (Triadic) Coverage</b> — share protected in Europe + US + Japan simultaneously.</li>
+      <li><b>Patent Portfolio Survival Rate</b> — share of the renewal registry still paying annuities.</li>
+      <li><b>Average Remaining Patent Life</b> — average years of protection left before the 20-year expiry.</li>
+    </ul>
+    <div class="gloss-tab">Portfolio Quality (international subset)</div>
+    <ul>
+      <li><b>High-Impact Patents</b> — share ranking in the top 10% most-cited for their field and cohort.</li>
+      <li><b>Originality</b> — how broadly a patent draws on diverse technology fields (0–1).</li>
+      <li><b>Technology Scope</b> — how many distinct technology fields a patent spans.</li>
+      <li><b>Science Linkage (NPL)</b> — how directly a patent cites scientific (non-patent) literature.</li>
+      <li><b>Forward Citations per Patent</b> — average forward citations across the international sample.</li>
+    </ul>
+    <div class="gloss-tab">Commercialization</div>
+    <ul>
+      <li><b>Active Commercialization Rate</b> — share of patents on a live commercial path (illustrative).</li>
+      <li><b>Licensing Agreements Signed</b> — licence/option deals per year (illustrative).</li>
+      <li><b>Annual IP Revenue</b> — royalties and equity income from IP (illustrative).</li>
+      <li><b>Revenue per Active Patent</b> — IP income divided by active patents (illustrative).</li>
+      <li><b>Portfolio Pruning Candidates</b> — old, domestic-only patents still being maintained (review-to-lapse).</li>
+    </ul>
+    <div class="gloss-tab">Industrial Partnership &amp; Ventures</div>
+    <ul>
+      <li><b>Industry Concentration Index (HHI)</b> — how concentrated co-filing is among partners (0 = diversified, 1 = one partner).</li>
+      <li><b>Industry–Academia Collaboration</b> — every patent classified as filed independently, with an industry partner, or with another university.</li>
+      <li><b>Spin-off Companies Created</b> — new companies founded on UM6P patents (illustrative).</li>
+      <li><b>Patent-to-Startup Conversion</b> — share of patents licensed to a new startup rather than an established firm (illustrative).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== AI Transparency Note modal ===== -->
+<div class="modal-overlay" id="aiModal" onclick="closeInfo('ai')">
+  <div class="modal info" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeInfo('ai')">&times;</button>
+    <div class="modal-title">AI Transparency Note</div>
+    <div class="modal-sub">How this dashboard was built, and how accuracy is protected.</div>
+    <p>This dashboard's data pipeline, metric calculations, and interface were built with <b>AI assistance (Claude, by Anthropic)</b>, working from a project brief and the editorial and analytical decisions set by the author.</p>
+    <h4>How accuracy is protected</h4>
+    <ul>
+      <li>Every <b>"Tracked now"</b> figure is computed by a <b>published, re-runnable script</b> directly from the source data — not hand-entered — so any number can be traced back and reproduced.</li>
+      <li><b>Illustrative</b> placeholders are clearly labelled and are never presented as verified data.</li>
+      <li>Data-source assumptions and edge cases (missing statuses, blank filing countries, partner-name variants) are handled explicitly and disclosed in Methods &amp; Sources.</li>
+      <li>Peer benchmarks use standardized national patent-quality datasets and are scoped, in writing, to the internationally-tracked subset.</li>
+    </ul>
+    <h4>About the written insights</h4>
+    <p>The short commentary beside each metric is <b>AI-generated interpretation of the current data</b>. The figures inside it update automatically whenever the data is refreshed, and the interpretation itself should be re-reviewed when the data changes materially. Treat it as analytical guidance to speed reading — not an official UM6P position.</p>
+    <p style="color:var(--text-muted)">AI accelerated the building; the framing, interpretation, and every judgment about what to show and how to caveat it are the author's. Errors are the author's responsibility — corrections are welcome via <a href="https://github.com/ShashwatS3110/UM6P_PatentPerformanceDashboard/issues" target="_blank" rel="noopener" style="color:var(--orange-dark);font-weight:600">the repository</a>.</p>
   </div>
 </div>
 
@@ -1227,10 +1450,36 @@ function renderSel(){
 }
 function closeSel(){document.getElementById('selModal').classList.remove('open');}
 
+/* ---- Info modals (Methods & Sources, Glossary, AI Transparency) ---- */
+function openInfo(k){ var m=document.getElementById(k+'Modal'); if(m) m.classList.add('open'); }
+function closeInfo(k){ var m=document.getElementById(k+'Modal'); if(m) m.classList.remove('open'); }
+/* Deep-link the Methods modal to a specific tab's section */
+function openMethodsAt(anchor){ openInfo('methods'); var el=document.getElementById(anchor); if(el) setTimeout(function(){el.scrollIntoView({block:'start'});},30); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){['methods','glossary','ai'].forEach(closeInfo);} });
+
 applyLiveMetrics();
 renderBench();
 renderTarget();
 placeBenchCtrl('0');
+
+/* Data-updated stamp (from the build date) */
+(function(){
+  var d=(typeof DASH_DATA!=='undefined'&&DASH_DATA.generated)?DASH_DATA.generated:'—';
+  var a=document.getElementById('metaUpdated'); if(a) a.textContent=d;
+  var f=document.getElementById('footUpdated'); if(f) f.textContent=d;
+})();
+
+/* Per-tab "Methods" link next to each tab's question, deep-linked to its section */
+(function(){
+  var map={tab0:'m-overview',tab1:'m-scale',tab7:'m-labs',tab2:'m-themes',tab3:'m-global',tab4:'m-quality',tab5:'m-comm',tab6:'m-partner'};
+  Object.keys(map).forEach(function(tid){
+    var q=document.querySelector('#'+tid+' .subq'); if(!q) return;
+    var a=document.createElement('span');
+    a.className='methods-link'; a.textContent='Methods ↗';
+    a.onclick=function(){ openMethodsAt(map[tid]); };
+    q.appendChild(a);
+  });
+})();
 
 document.querySelectorAll('.card').forEach(function(card){
   var badge=card.querySelector(':scope > .statusbadge');
