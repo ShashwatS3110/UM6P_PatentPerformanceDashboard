@@ -86,7 +86,6 @@ $paysRows = Query-Excel $conn3 'PAYS DASHBOARD'
 $patents = [System.Collections.Generic.List[object]]::new()
 foreach ($row in $invRows) {
     $id = Cell $row 0
-    if ($id -notmatch '^[A-Z]{3}-\d+') { continue }
     $theme = Cell $row 1
     $title = Cell $row 3
     $inventor = Cell $row 4
@@ -100,6 +99,10 @@ foreach ($row in $invRows) {
     $year = 0
     if ($yearRaw -match '(\d{4})') { [void][int]::TryParse($Matches[1], [ref]$year) }
     if ($year -eq 0) { $d = Parse-Date $dateStr; if ($d) { $year = $d.Year } }
+    # A row counts as a patent if it has a proper ID (ABC-123), or — for rows added
+    # without an ID yet — a real patent title together with a filing year.
+    $hasId = ($id -match '^[A-Z]{3}-\d+')
+    if (-not $hasId -and -not ($title -and $year -ge 2000 -and $title -ne 'Titre du Brevet')) { continue }
     $patents.Add([pscustomobject]@{
         id=$id; theme=$theme; title=$title; inventor=$inventor; lab=$lab; year=$year; date=$dateStr
         statut=$statut; geo=$geo; partners=$partners; bucket=(Lab-Bucket $lab)
